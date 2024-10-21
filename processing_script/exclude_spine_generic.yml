@@ -1,0 +1,44 @@
+- sub-vuiisIngenia05  # rootlets seg failed missing C5
+- sub-vallHebron03  # rootlets seg failed missing C5
+- sub-vallHebron02  # rootlets seg failed missing C4
+- sub-vallHebron01  # rootlets seg failed missing C6
+- sub-tokyo750w06  # rootlets seg failed missing C5 & C7
+- sub-tokyo750w04  # rootlets seg failed missing C5 & C6
+- sub-stanford01  # rootlets seg failed missing C7, C8 bad
+-	sub-mniS05  # rootlets seg failed missing C4 (stenosis)
+
+
+
+# TO rerun:
+
+sub-ucdavis01
+sub-ucdavis02
+sub-ucdavis03
+sub-ucdavis04
+sub-ucdavis05
+sub-ucdavis06
+sub-ucdavis07
+sub-ubc01
+sub-tokyo750w05  # qform, sform
+sub-sherbrooke05  # qform, sform
+sub-oxfordOhba02
+sub-oxfordFmrib04
+sub-oxfordFmrib01
+sub-mountSinai06   # qform, sform
+sub-mountSinai03  # qform, sform
+sub-geneva01  # qform, sform
+sub-cmrrb03  # qform, sform
+sub-cmrrb01  # qform, sform
+sub-brnoUhb08
+sub-brnoUhb07
+sub-brnoUhb03
+sub-brnoUhb02
+sub-beijingVerio04
+sub-beijingVerio03
+sub-beijingVerio02
+sub-beijingVerio01
+sub-beijingGE04
+sub-beijingGE03
+sub-beijingGE02
+sub-beijingGE01
+#TODO fix qform sform for sct_label_vertebraer discs albels
