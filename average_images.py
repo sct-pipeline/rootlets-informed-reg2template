@@ -15,6 +15,7 @@ import glob
 import sys
 import yaml
 import subprocess
+import nibabel as nib
 
 # Initialize logging
 logger = logging.getLogger(__name__)
@@ -66,8 +67,23 @@ def main():
     # Filter out entries containing any substring from subjects_to_remove
     dir_list_excluded = [entry for entry in dir_list if not any(subject in entry for subject in dict_exclude_subj)]
     print("Number of files after excluding:, ", len(dir_list_excluded))
-    input_files = " ".join(dir_list_excluded[1:])  # put in strings for the command
-    cmd = f'sct_maths -i {dir_list_excluded[0]} -add {input_files} -o {os.path.join(path_out,'sum_' + path_file + '.nii.gz')}'
-    subprocess.run(cmd, shell=True)
+    #input_files = " ".join(dir_list_excluded[1:])  # put in strings for the command
+    file_nib = nib.load(dir_list_excluded[0])
+    file_data = np.array(file_nib.get_fdata())
+    sum_data = np.zeros(shape=file_data.shape)
+    for file in dir_list_excluded:
+        file_nib = nib.load(file)
+        sum_data +=np.array(file_nib.get_fdata())
+        print(file)
+    mean_data = sum_data / len(dir_list_excluded)
+    nii_mean= nib.Nifti1Image(mean_data, file_nib.affine)
+    fname_out_levels = 'mean_' + path_file + '.nii.gz'
+    nib.save(nii_mean, os.path.join(path_out, fname_out_levels))
+
+    #cmd = f'sct_maths -i {dir_list_excluded[0]} -add {input_files} -o {os.path.join(path_out,'sum_' + path_file + '.nii.gz')}'
+    #subprocess.run(cmd, shell=True)
+    #cmd = f'sct_maths -i {os.path.join(path_out,'sum_' + path_file + '.nii.gz')} -div {str(len(dir_list_excluded))} -o {os.path.join(path_out,'mean_' + path_file + '.nii.gz')}'
+    #subprocess.run(cmd, shell=True)
+    
 if __name__ == '__main__':
     main()
