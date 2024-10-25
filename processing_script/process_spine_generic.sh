@@ -145,6 +145,7 @@ sct_register_to_template -i ${file_t2}.nii.gz -s ${file_t2}_seg.nii.gz -ldisc ${
 end_discs=`date +%s`
 runtime_discs=$((end_discs-start_discs))
 echo "+++++++++++ TIME: Duration of of discs reg2template:    $(($runtime_discs / 3600))hrs $((($runtime_discs / 60) % 60))min $(($runtime_discs % 60))sec"
+sct_apply_transfo -i ${file_t2_rootlets}.nii.gz -x nn -w reg_discs/warp_anat2template.nii.gz -d $SCT_DIR/data/PAM50/template/PAM50_t2.nii.gz -o reg_discs/${file_t2_rootlets}_2template.nii.gz
 
 
 
