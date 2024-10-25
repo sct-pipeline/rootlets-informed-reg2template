@@ -115,9 +115,9 @@ segment_if_does_not_exist $file_t2
 
 # 2. Create C2-C3 disc label in the cord
 label_if_does_not_exist $file_t2 ${file_t2}_seg
-sct_label_utils -i ${file_t2}_seg_labeled_discs.nii.gz -keep 3 -o ${file_t2}_seg_labeled_discs3.nii.gz -qc ${PATH_QC} -qc-subject ${file_t2}
+sct_label_utils -i ${file_t2}_seg_labeled_discs.nii.gz -keep 3 -o ${file_t2}_seg_labeled_discs3.nii.gz -qc ${PATH_QC} -qc-subject ${SUBJECT}
 # Create mid-vertebrae labels
-sct_label_utils -i ${file_t2}_seg_labeled.nii.gz -vert-body 2,7 -o ${file_t2}_seg_labeled_vertbody_27.nii.gz -qc ${PATH_QC} -qc-subject ${file_t2}
+sct_label_utils -i ${file_t2}_seg_labeled.nii.gz -vert-body 2,7 -o ${file_t2}_seg_labeled_vertbody_27.nii.gz -qc ${PATH_QC} -qc-subject ${SUBJECT}
 
 # 3. Segment rootlets
 segment_rootlets_if_does_not_exist $file_t2
@@ -131,7 +131,7 @@ sct_qc -i ${file_t2}.nii.gz  -s ${file_t2_rootlets}_mid_center.nii.gz -p sct_lab
 # 4. Register T2-w image to PAM50 template # TODO: add time for each
 # With rootlets
 start_rootlets=`date +%s`
-sct_register_to_template -i ${file_t2}.nii.gz -s ${file_t2}_seg.nii.gz -ldisc ${file_t2_rootlets}_mid_center.nii.gz  -lrootlets ${file_t2_rootlets}.nii.gz  -ofolder reg_rootlets -qc $PATH_QC
+sct_register_to_template -i ${file_t2}.nii.gz -s ${file_t2}_seg.nii.gz -ldisc ${file_t2_rootlets}_mid_center.nii.gz  -lrootlets ${file_t2_rootlets}.nii.gz  -ofolder reg_rootlets -qc $PATH_QC -qc-subject ${SUBJECT}
 end_rootlets=`date +%s`
 runtime_rootlets=$((end_rootlets-start_rootlets))
 echo "+++++++++++ TIME: Duration of of rootlet reg2template:    $(($runtime_rootlets / 3600))hrs $((($runtime_rootlets / 60) % 60))min $(($runtime_rootlets % 60))sec"
@@ -141,7 +141,7 @@ sct_apply_transfo -i ${file_t2_rootlets}.nii.gz -x nn -w reg_rootlets/warp_anat2
 
 # With all discs labels
 start_discs=`date +%s`
-sct_register_to_template -i ${file_t2}.nii.gz -s ${file_t2}_seg.nii.gz -ldisc ${file_t2}_seg_labeled_discs.nii.gz -ofolder reg_discs
+sct_register_to_template -i ${file_t2}.nii.gz -s ${file_t2}_seg.nii.gz -ldisc ${file_t2}_seg_labeled_discs.nii.gz -ofolder reg_discs -qc $PATH_QC -qc-subject ${SUBJECT}
 end_discs=`date +%s`
 runtime_discs=$((end_discs-start_discs))
 echo "+++++++++++ TIME: Duration of of discs reg2template:    $(($runtime_discs / 3600))hrs $((($runtime_discs / 60) % 60))min $(($runtime_discs % 60))sec"
