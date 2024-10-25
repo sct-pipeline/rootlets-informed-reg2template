@@ -4,11 +4,32 @@
 - sub-vallHebron01  # rootlets seg failed missing C6
 - sub-tokyo750w06  # rootlets seg failed missing C5 & C7
 - sub-tokyo750w04  # rootlets seg failed missing C5 & C6
-- sub-stanford01  # rootlets seg failed missing C7, C8 bad
+- sub-stanford01  # rootlets seg failed missing C7
 - sub-mniS05  # rootlets seg failed missing C4 (stenosis)
 - sub-beijingGE03
 - sub-beijingGE04
 - sub-beijingVerio02
 - sub-beijingVerio04
 - sub-brnoUhb02
-- sub-brnoUhb03  #sub-ucdavis01 sub-ucdavis02 sub-ucdavis03 sub-ucdavis04 sub-ucdavis05 sub-ucdavis06 sub-ucdavis07 sub-ubc01 sub-tokyo750w05 sub-sherbrooke05 sub-oxfordOhba02 sub-oxfordFmrib04 sub-oxfordFmrib01 sub-mountSinai06 sub-mountSinai03 sub-geneva01 sub-cmrrb03  sub-cmrrb01  sub-brnoUhb08 sub-brnoUhb07 sub-brnoUhb03 sub-brnoUhb02 sub-beijingVerio04 sub-beijingVerio03 sub-beijingVerio02 sub-beijingVerio01 sub-beijingGE04 sub-beijingGE03 sub-beijingGE02 sub-beijingGE01
+- sub-brnoUhb03  # sub-ucdavis01 sub-ucdavis02 sub-ucdavis03 sub-ucdavis04 sub-ucdavis05 sub-ucdavis06 sub-ucdavis07 sub-ubc01 sub-tokyo750w05 sub-sherbrooke05 sub-oxfordOhba02 sub-oxfordFmrib04 sub-oxfordFmrib01 sub-mountSinai06 sub-mountSinai03 sub-geneva01 sub-cmrrb03  sub-cmrrb01  sub-brnoUhb08 sub-brnoUhb07 sub-brnoUhb03 sub-brnoUhb02 sub-beijingVerio04 sub-beijingVerio03 sub-beijingVerio02 sub-beijingVerio01 sub-beijingGE04 sub-beijingGE03 sub-beijingGE02 sub-beijingGE01
+- sub-brnoCeitec06 # rootlets seg failed missing C8
+- sub-cmrrb05  # rootlets seg failed missing C5, C6, C7, C8
+- sub-fslAchieva01  # rootlets seg failed missing C8
+- sub-fslAchieva02  # rootlets seg failed C8 bad
+- sub-geneva03  # rootlets seg failed C6/C7, too close
+- sub-mpicbs02  # rootlets seg failed C5 & C6 underseg
+- sub-pavia03  # rootlets seg failed missing C8
+- sub-perform02  # rootlets seg failed missing C7 & C8
+- sub-perform01  # rootlets seg failed missing C8
+- sub-perform03  # rootlets seg error at C6
+- sub-sherbrooke06  # rootlets seg failed missing C8
+- sub-strasbourg05  # rootlets seg failed missing C8
+- sub-tokyo750w02  # rootlets seg failed missing C7 & C8
+- sub-tokyo750w03  # rootlets seg failed missing C7 & C8
+- sub-vallHebron07  # rootlets seg failed C7 overlaps C6
+- sub-vuiisIngenia06  # rootlets seg failed missing C8
+- ub-cmrrb03  # rootlets seg failed missing C8
+- sub-beijingGE02  # rootlets seg failed C5 underseg
+- sub-beijingVerio03  # rootlets seg failed missing C8
+- sub-cmrrb03  # rootlets seg failed missing C8
+- sub-tokyo750w05  # rootlets seg failed missing C8
