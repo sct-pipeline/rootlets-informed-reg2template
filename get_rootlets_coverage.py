@@ -264,12 +264,12 @@ def main():
     
     dict_list = []
     # Loop through rootlets file for reg_rootlets
-    for file in dir_list_excluded[0:10]:
+    for file in dir_list_excluded:
         d = get_start_stop_spinal_levels(file, type_reg="reg_rootelts", d_PAM50=df_PAM50)
         dict_list.extend(d)
     #Loop through rootlets file for reg_discs
     dict_list_dict = []
-    for file in dir_list_discs_excluded[0:10]:
+    for file in dir_list_discs_excluded:
          d = get_start_stop_spinal_levels(file, type_reg="reg_discs", d_PAM50=df_PAM50)
          dict_list_dict.extend(d)
 
