@@ -161,13 +161,13 @@ def create_coverage_plot(df, df_discs, df_pam50, path_out):
             )
         i+=1
     ax.set_xlim(0.8, 1.9)
-    ax.set_ylim(min(df['stop'].min(), df['start'].min())*0.99,
-                    max(df['stop'].max(), df['start'].max())*1.01)
+    #ax.set_ylim(min(df['stop'].min(), df['start'].min())*0.99,
+                   # max(df['stop'].max(), df['start'].max())*1.01)
     #ax.set_xticks(reg_type)
     ax.set_xticks([1,1/3+1,2/3+1])
     ax.set_xticklabels(reg_type)
-    ax.set_ylabel('Slice (I-->S)', fontsize=14)
-    ax.set_yticks(range(730, 990, 30))
+    ax.set_ylabel('Position (mm)', fontsize=14)
+    ax.set_yticks(range(-190, -60, 15))
     ax.grid(axis='y', alpha=0.2)
     ax.set_axisbelow(True)
     plt.tight_layout()
@@ -278,6 +278,20 @@ def main():
     # TODO: save in csv file
     df_coverage.to_csv(os.path.join(path_out,'coverage_rootlets_reg.csv'), index=False)
     df_coverage_discs.to_csv(os.path.join(path_out,'coverage_discs_reg.csv'), index=False)
+    # Convert slices to MNI space coordinates
+    df_coverage['stop'] = df_coverage['stop']*(0.5)-561.84
+    df_coverage['len'] = df_coverage['len']*(0.5)
+    df_coverage['start'] = df_coverage['start']*(0.5)-561.84
+    
+    df_coverage_discs['len'] = df_coverage_discs['len']*(0.5)
+    df_coverage_discs['stop'] = df_coverage_discs['stop']*(0.5)-561.84
+    df_coverage_discs['start'] = df_coverage_discs['start']*(0.5)-561.84
+
+    df_PAM50['stop'] = df_PAM50['stop']*(0.5)-561.84
+    df_PAM50['start'] = df_PAM50['start']*(0.5)-561.84
+    df_PAM50['len'] = df_PAM50['len']*(0.5)
+
+
     # Create boxplot:
     create_coverage_plot(df_coverage, df_coverage_discs, df_PAM50, path_out)
 
