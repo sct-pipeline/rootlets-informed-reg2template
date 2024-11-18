@@ -2,7 +2,7 @@
 # -*- coding: utf-8
 # TODO
 #
-# For usage, type: python average_z_warping_field.py.py -h
+# For usage, type: python average_z_warping_field.py -h
 
 # Authors: Sandrine Bédard
 
@@ -10,7 +10,6 @@ import argparse
 import numpy as np
 import nibabel as nib
 import os
-import numpy as np
 
 
 def get_parser():

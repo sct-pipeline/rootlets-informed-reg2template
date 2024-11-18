@@ -2,6 +2,8 @@
 # -*- coding: utf-8
 #
 # For usage, type: python average_images.py -h
+# Example
+# python get_rootlets_coverage.py -path-data /Volumes/temp/sebeda/rootlet_reg/results_spine-generic_sub-amu01_rootlets_2024-10-18/data_processed -path-out ~/processed_data/results_spine_generic_average -exclude processing_script/exclude_spine_generic.yml
 # TODO: include this script inside processing script instead
 # Authors: Sandrine Bédard
 

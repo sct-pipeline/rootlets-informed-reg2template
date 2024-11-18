@@ -3,7 +3,8 @@
 # TODO
 #
 # For usage, type: python average_images.py -h
-
+# Example:
+# python average_images.py -path-data ~/duke/temp/sebeda/rootlet_reg/results_spine-generic_sub-amu01_rootlets_2024-10-18/data_processed/ -path-file reg_discs -path-out ~/duke/temp/sebeda/rootlet_reg/results_spine-generic_sub-amu01_rootlets_2024-10-18/results/ -exclude processing_script/exclude_spine_generic.yml 
 # Authors: Sandrine Bédard
 
 
