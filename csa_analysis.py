@@ -12,7 +12,6 @@ import argparse
 import sys
 import numpy as np
 import pandas as pd
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import seaborn as sns
 from datetime import datetime
@@ -141,7 +140,7 @@ def compare_metrics_across_group(df, perlevel=False, metric_chosen=None):
     for metric in METRICS:
         logger.info(f"\n{metric}")
         if metric_chosen:
-            metric=metric_chosen
+            metric = metric_chosen
         if perlevel:
             slices_HC = df[df['group'] == 'rootlet'].groupby(['VertLevel'])[metric].mean()
             slices_HC_STD = df[df['group'] == 'rootlet'].groupby(['VertLevel'])[metric].std()
@@ -169,8 +168,7 @@ def compare_metrics_across_group(df, perlevel=False, metric_chosen=None):
         #print(p_adjusted)
         logger.info(f'{metric}: Wilcoxon rank-sum test between HC and CR: p-value{format_pvalue(pval)}')
         if metric_chosen:
-           break
-
+            break
 
 
 def read_t2w_pam50(file, group, exclude_list=None):
@@ -194,8 +192,8 @@ def plot_ind_sub(df, group, metric, path_out, filename, hue='participant_id'):
     plt.figure()
     
     fig, ax = plt.subplots(figsize=(15, 10))
-    sns.lineplot(ax=ax, data=df.loc[df['group'] == group], x="Slice (I->S)", y=metric,hue=hue, linewidth=2)  #errorbar='sd', ,palette=PALETTE[hue]
-   # plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+    sns.lineplot(ax=ax, data=df.loc[df['group'] == group], x="Slice (I->S)", y=metric, hue=hue, linewidth=2)  # errorbar='sd', ,palette=PALETTE[hue]
+    # plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.subplots_adjust(right=0.7)
     ax.set_ylim(40, 120)
     ymin, ymax = ax.get_ylim()
@@ -248,7 +246,7 @@ def create_lineplot(df, hue=None, filename=None):
     # Loop across metrics
     for index, metric in enumerate(METRICS):
         # Note: we are ploting slices not levels to avoid averaging across levels
-        if hue == 'sex' or hue=='group':
+        if hue == 'sex' or hue == 'group':
             sns.lineplot(ax=axs[index], x="Slice (I->S)", y=metric, data=df, errorbar='sd', hue=hue, linewidth=2,
                          palette=PALETTE[hue])
             if index == 0:
@@ -312,7 +310,6 @@ def main():
     # Get input argments
     input_folder = os.path.abspath(args.i_folder)
 
-
     output_folder = args.o_folder
     # Create output folder if does not exist.
     if not os.path.exists(output_folder):
@@ -324,8 +321,7 @@ def main():
     fh = logging.FileHandler(os.path.join(FNAME_LOG))
     logging.root.addHandler(fh)
 
-
-        # Create a list with subjects to exclude if input .yml config file is passed
+    # Create a list with subjects to exclude if input .yml config file is passed
     if args.exclude is not None:
         # Check if input yml file exists
         if os.path.isfile(args.exclude):
@@ -348,7 +344,7 @@ def main():
     filename_discs = os.path.join(input_folder, "csa_discs_PAM50.csv")
 
     df_rootlets = read_t2w_pam50(filename_rootlets, 'rootlet', exclude_list=exclude).dropna(axis=0)
-    df_discs = read_t2w_pam50(filename_discs, 'disc',exclude_list=exclude).dropna(axis=0)
+    df_discs = read_t2w_pam50(filename_discs, 'disc', exclude_list=exclude).dropna(axis=0)
 
     df_all = pd.concat([df_rootlets, df_discs], ignore_index=True)
     print(df_all)
@@ -359,7 +355,6 @@ def main():
     create_lineplot(df_all, hue='group')
     plot_ind_sub(df_all, group='rootlet', metric='MEAN(area)', path_out=output_folder, filename='csa_persubject_rootlet.png')
     plot_ind_sub(df_all, group='disc', metric='MEAN(area)', path_out=output_folder, filename='csa_persubject_disc.png')
-
 
     df_all = df_all[df_all['VertLevel'] < 7]
     df_all = df_all[df_all['VertLevel'] > 1]
