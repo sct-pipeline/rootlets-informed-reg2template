@@ -120,7 +120,7 @@ label_if_does_not_exist $file_t2 ${file_t2}_seg
 # 2.1: Crop image at disc T2/T3 (label 10) to facilitate rootlets segmentation
 sct_label_utils -i ${file_t2}_seg_labeled_discs.nii.gz -keep 10 -o ${file_t2}-10.nii.gz
 slice=$(sct_label_utils -i ${file_t2}-10.nii.gz -display)
-min_z=${slice: -7:-4}
+min_z=${slice: -8:-5}
 # Crop
 sct_crop_image -i ${file_t2}.nii.gz -zmin $min_z -o ${file_t2}_crop.nii.gz
 file_t2=${file_t2}_crop
