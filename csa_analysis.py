@@ -117,7 +117,7 @@ def get_vert_indices(df, vertlevel='VertLevel'):
         ind_vert_mid (np.array): indices of slices corresponding to mid-levels
     """
     # Get vert levels for one certain subject
-    vert = df[(df['participant_id'] == 'sub-amu01') & (df['group'] == 'disc')][vertlevel]
+    vert = df[(df['participant_id'] == 'sub-01') & (df['group'] == 'disc')][vertlevel] # 'sub-amu01' TODO: add argument for example subject
     # Get indexes of where array changes value
     ind_vert = vert.diff()[vert.diff() != 0].index.values
     # Get the beginning of C1
@@ -190,12 +190,11 @@ def read_t2w_pam50(file, group, exclude_list=None):
 
 def plot_ind_sub(df, group, metric, path_out, filename, hue='participant_id'):
     plt.figure()
-    
     fig, ax = plt.subplots(figsize=(15, 10))
     sns.lineplot(ax=ax, data=df.loc[df['group'] == group], x="Slice (I->S)", y=metric, hue=hue, linewidth=2)  # errorbar='sd', ,palette=PALETTE[hue]
     # plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.subplots_adjust(right=0.7)
-    ax.set_ylim(40, 120)
+    ax.set_ylim(0.6, 1.3)
     ymin, ymax = ax.get_ylim()
     ax.get_legend().remove()
     # Get indices of slices corresponding vertebral levels
@@ -304,6 +303,46 @@ def create_lineplot(df, hue=None, filename=None):
     logger.info('Figure saved: ' + filename)
 
 
+def normalize_csa(df):
+    target_levels = [2.0, 3.0]  # VertLevel values to target
+    slice_range = 10  # Number of slices above and below
+    # Filter rows corresponding to the target vertebral levels
+    level_filtered = df[df['VertLevel'].isin(target_levels)]
+
+    # Step 2: Identify the slice ranges for each participant and vert level
+    # Merge the original DataFrame with the level_filtered DataFrame to map participant_id and Slice (I->S) ranges
+    merged = df.merge(
+        level_filtered[['participant_id', 'Slice (I->S)']],
+        on='participant_id',
+        suffixes=('', '_target')
+    )
+
+    # Step 3: Filter rows within ±slice_range of the target Slice (I->S)
+    slices_of_interest = merged[
+        (merged['Slice (I->S)'] >= merged['Slice (I->S)_target'] - slice_range) &
+        (merged['Slice (I->S)'] <= merged['Slice (I->S)_target'] + slice_range)
+    ]
+
+    # Step 4: Compute the mean of MEAN(area) for each participant
+    result = (
+        slices_of_interest
+        .groupby('participant_id')['MEAN(area)']
+        .mean()
+        .reset_index()
+    )
+
+    # Rename columns for clarity
+    result.columns = ['participant_id', 'average_mean_area']
+
+    # Merge the average CSA back into the original dataframe
+    df_with_avg = df.merge(result, on='participant_id', how='left')
+
+    # Normalize MEAN(area) by dividing by the average CSA
+    df_with_avg['normalized_mean_area'] = df_with_avg['MEAN(area)'] / df_with_avg['average_mean_area']
+
+    return df_with_avg
+
+
 def main():
 
     args = get_parser().parse_args()
@@ -345,16 +384,18 @@ def main():
 
     df_rootlets = read_t2w_pam50(filename_rootlets, 'rootlet', exclude_list=exclude).dropna(axis=0)
     df_discs = read_t2w_pam50(filename_discs, 'disc', exclude_list=exclude).dropna(axis=0)
-
+    df_rootlets = normalize_csa(df_rootlets)
+    df_discs = normalize_csa(df_discs)
     df_all = pd.concat([df_rootlets, df_discs], ignore_index=True)
+
     print(df_all)
     df_all = df_all[df_all['VertLevel'] < 8]
     df_all = df_all[df_all['VertLevel'] > 1]
     logger.info('Number of participants:')
     logger.info(len(np.unique(df_all['participant_id'])))
     create_lineplot(df_all, hue='group')
-    plot_ind_sub(df_all, group='rootlet', metric='MEAN(area)', path_out=output_folder, filename='csa_persubject_rootlet.png')
-    plot_ind_sub(df_all, group='disc', metric='MEAN(area)', path_out=output_folder, filename='csa_persubject_disc.png')
+    plot_ind_sub(df_all, group='rootlet', metric='normalized_mean_area', path_out=output_folder, filename='csa_persubject_rootlet.png')
+    plot_ind_sub(df_all, group='disc', metric='normalized_mean_area', path_out=output_folder, filename='csa_persubject_disc.png')
 
     df_all = df_all[df_all['VertLevel'] < 7]
     df_all = df_all[df_all['VertLevel'] > 1]
