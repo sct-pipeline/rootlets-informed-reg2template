@@ -117,6 +117,14 @@ label_if_does_not_exist $file_t2 ${file_t2}_seg
 # Create mid-vertebrae labels
 #sct_label_utils -i ${file_t2}_seg_labeled.nii.gz -vert-body 2,7 -o ${file_t2}_seg_labeled_vertbody_27.nii.gz -qc ${PATH_QC} -qc-subject ${SUBJECT}
 
+# 2.1: Crop image at disc T2/T3 (label 10) to facilitate rootlets segmentation
+sct_label_utils -i ${file_t2}_seg_labeled_discs.nii.gz -keep 10 -o ${file_t2}-10.nii.gz
+slice=$(sct_label_utils -i ${file_t2}-10.nii.gz -display)
+min_z=${slice: -6:-3}
+# Crop
+sct_crop_image -i ${file_t2}.nii.gz -zmin $min_z -o ${file_t2}_crop.nii.gz
+file_t2=${file_t2}_crop
+
 # 3. Segment rootlets
 segment_rootlets_if_does_not_exist $file_t2
 file_t2_rootlets=$FILELABEL
@@ -137,12 +145,12 @@ echo "+++++++++++ TIME: Duration of of rootlet reg2template:    $(($runtime_root
 # bring spinal nerve rootlets segmentation in template space for comparison!
 sct_apply_transfo -i ${file_t2_rootlets}.nii.gz -x nn -w reg_rootlets/warp_anat2template.nii.gz -d $SCT_DIR/data/PAM50/template/PAM50_t2.nii.gz -o reg_rootlets/${file_t2_rootlets}_2template.nii.gz
 
-# Run registration without last step for CSA computation
-# sct_register_to_template -i ${file_t2}.nii.gz -s ${file_t2}_seg.nii.gz \
-#                          -lrootlet ${file_t2_rootlets}.nii.gz  -ofolder reg_rootlets_noXY -qc $PATH_QC -qc-subject ${SUBJECT} \
-#                          -param step=1,type=imseg,algo=centermassrot,metric=MeanSquares,iter=10,smooth=0,gradStep=0.5,slicewise=0,smoothWarpXY=2,pca_eigenratio_th=1.6
-# sct_deepseg -i reg_rootlets_noXY/anat2template.nii.gz -task seg_sc_contrast_agnostic -qc ${PATH_QC} -qc-subject ${SUBJECT}
-# sct_process_segmentation -i reg_rootlets_noXY/anat2template_seg.nii.gz -perslice 1 -vertfile $SCT_DIR/data/PAM50/template/PAM50_levels.nii.gz -append 1 -o ${PATH_RESULTS}/csa_rootlets_PAM50.csv
+#Run registration without last step for CSA computation
+sct_register_to_template -i ${file_t2}.nii.gz -s ${file_t2}_seg.nii.gz \
+                         -lrootlet ${file_t2_rootlets}.nii.gz  -ofolder reg_rootlets_noXY -qc $PATH_QC -qc-subject ${SUBJECT} \
+                         -param step=1,type=imseg,algo=centermassrot,metric=MeanSquares,iter=10,smooth=0,gradStep=0.5,slicewise=0,smoothWarpXY=2,pca_eigenratio_th=1.6
+sct_deepseg -i reg_rootlets_noXY/anat2template.nii.gz -task seg_sc_contrast_agnostic -qc ${PATH_QC} -qc-subject ${SUBJECT}
+sct_process_segmentation -i reg_rootlets_noXY/anat2template_seg.nii.gz -perslice 1 -vertfile $SCT_DIR/data/PAM50/template/PAM50_levels.nii.gz -append 1 -o ${PATH_RESULTS}/csa_rootlets_PAM50.csv
 
 
 # With all discs labels
@@ -155,11 +163,11 @@ sct_apply_transfo -i ${file_t2_rootlets}.nii.gz -x nn -w reg_discs/warp_anat2tem
 
 
 # Run registration without last step for CSA computation
-# sct_register_to_template -i ${file_t2}.nii.gz -s ${file_t2}_seg.nii.gz -ldisc ${file_t2}_seg_labeled_discs.nii.gz \
-#                          -ofolder reg_discs_noXY -qc $PATH_QC -qc-subject ${SUBJECT} \
-#                          -param step=1,type=imseg,algo=centermassrot,metric=MeanSquares,iter=10,smooth=0,gradStep=0.5,slicewise=0,smoothWarpXY=2,pca_eigenratio_th=1.6
-# sct_deepseg -i reg_discs_noXY/anat2template.nii.gz -task seg_sc_contrast_agnostic -qc ${PATH_QC} -qc-subject ${SUBJECT}
-# sct_process_segmentation -i reg_discs_noXY/anat2template_seg.nii.gz -perslice 1 -vertfile $SCT_DIR/data/PAM50/template/PAM50_levels.nii.gz -append 1 -o ${PATH_RESULTS}/csa_discs_PAM50.csv
+sct_register_to_template -i ${file_t2}.nii.gz -s ${file_t2}_seg.nii.gz -ldisc ${file_t2}_seg_labeled_discs.nii.gz \
+                         -ofolder reg_discs_noXY -qc $PATH_QC -qc-subject ${SUBJECT} \
+                         -param step=1,type=imseg,algo=centermassrot,metric=MeanSquares,iter=10,smooth=0,gradStep=0.5,slicewise=0,smoothWarpXY=2,pca_eigenratio_th=1.6
+sct_deepseg -i reg_discs_noXY/anat2template.nii.gz -task seg_sc_contrast_agnostic -qc ${PATH_QC} -qc-subject ${SUBJECT}
+sct_process_segmentation -i reg_discs_noXY/anat2template_seg.nii.gz -perslice 1 -vertfile $SCT_DIR/data/PAM50/template/PAM50_levels.nii.gz -append 1 -o ${PATH_RESULTS}/csa_discs_PAM50.csv
 
 
 # # With 2 mid-vertebrae labels
