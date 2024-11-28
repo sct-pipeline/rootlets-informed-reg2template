@@ -11,7 +11,7 @@
 - sub-beijingVerio02
 - sub-beijingVerio04
 - sub-brnoUhb02
-- sub-brnoUhb03  # sub-ucdavis01 sub-ucdavis02 sub-ucdavis03 sub-ucdavis04 sub-ucdavis05 sub-ucdavis06 sub-ucdavis07 sub-ubc01 sub-tokyo750w05 sub-sherbrooke05 sub-oxfordOhba02 sub-oxfordFmrib04 sub-oxfordFmrib01 sub-mountSinai06 sub-mountSinai03 sub-geneva01 sub-cmrrb03  sub-cmrrb01  sub-brnoUhb08 sub-brnoUhb07 sub-brnoUhb03 sub-brnoUhb02 sub-beijingVerio04 sub-beijingVerio03 sub-beijingVerio02 sub-beijingVerio01 sub-beijingGE04 sub-beijingGE03 sub-beijingGE02 sub-beijingGE01
+- sub-brnoUhb03 
 - sub-brnoCeitec06 # rootlets seg failed missing C8
 - sub-cmrrb05  # rootlets seg failed missing C5, C6, C7, C8
 - sub-fslAchieva01  # rootlets seg failed missing C8
@@ -36,3 +36,54 @@
 - sub-beijingGE01  # investigate, maybe sform, or qform error...
 - sub-brnoUhb07  # investigate, maybe sform, or qform error...
 - sub-brnoUhb08   # investigate, maybe sform, or qform error...
+- sub-vuiisIngenia02  # Mild compression
+- sub-vuiisAchieva05  # Mild compression
+- sub-vuiisAchieva03  # Mild compression
+- sub-vuiisAchieva01  # Mild compression
+- sub-unf02  # Mild compression
+- sub-unf01  # Mild compression
+- sub-ucl05  # Mild compression
+- sub-ucl04  # Mild compression
+- sub-cardiff05  # Mild compression
+- sub-cardiff06  # Mild compression
+- sub-barcelona01
+- sub-barcelona02
+- sub-barcelona03
+- sub-barcelona04
+- sub-beijingPrisma02
+- sub-beijingPrisma03
+- sub-brnoCeitec04
+- sub-cmrrb06
+- sub-fslAchieva06
+- sub-fslPrisma02
+- sub-geneva06
+- sub-hamburg02
+- sub-hamburg05
+- sub-juntendo750w03
+- sub-juntendo750w04
+- sub-mniS06
+- sub-mniS06
+- sub-mountSinai01
+- sub-mountSinai03
+- sub-mountSinai04
+- sub-nwu01
+- sub-oxfordFmrib08
+- sub-oxfordFmrib09
+- sub-oxfordFmrib11
+- sub-pavia01
+- sub-pavia05
+- sub-queensland02
+- sub-queensland06
+- sub-sherbrooke01
+- sub-sherbrooke03
+- sub-tehranS04
+- sub-tokyo750w01
+- sub-tokyoIngenia01
+- sub-tokyoIngenia03
+- sub-tokyoIngenia04
+- sub-tokyoSkyra01
+- sub-tokyoSkyra03
+- sub-tokyoSkyra04
+- sub-tokyoSkyra05
+- sub-ucdavis02
+- sub-ucdavis05
