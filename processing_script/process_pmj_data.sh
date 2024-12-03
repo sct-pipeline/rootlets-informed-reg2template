@@ -129,8 +129,10 @@ start_rootlets=`date +%s`
 sct_register_to_template -i ${file_t2}.nii.gz -s ${file_t2}_seg.nii.gz -ldisc ${file_t2}_seg_labeled_discs3.nii.gz  -lrootlet ${file_t2_rootlets}.nii.gz  -ofolder reg_rootlets -qc $PATH_QC
 #sct_register_to_template -i ${file_t2}.nii.gz -s ${file_t2}_seg.nii.gz -ldisc ${file_t2_rootlets}_mid_center.nii.gz  -lrootlet ${file_t2_rootlets}.nii.gz  -ofolder reg_rootlets -qc $PATH_QC
 end_rootlets=`date +%s`
-runtime=$((end_rootlets-start_rootlets))
-echo "+++++++++++ TIME: Duration of of rootlet reg2template:    $(($runtime / 3600))hrs $((($runtime / 60) % 60))min $(($runtime % 60))sec"
+runtime_rootlets=$((end_rootlets-start_rootlets))
+echo "+++++++++++ TIME: Duration of of rootlet reg2template:    $(($runtime_rootlets / 3600))hrs $((($runtime_rootlets / 60) % 60))min $(($runtime_rootlets % 60))sec"
+echo "${SUBJECT},${runtime_rootlets}" >> ${PATH_RESULTS}/execution_time_rootlets_reg.csv
+
 # bring spinal nerve rootlets segmentation in template space for comparison!
 sct_apply_transfo -i ${file_t2_rootlets}.nii.gz -x nn -w reg_rootlets/warp_anat2template.nii.gz -d $SCT_DIR/data/PAM50/template/PAM50_t2.nii.gz -o reg_rootlets/${file_t2_rootlets}_2template.nii.gz
 
@@ -138,8 +140,10 @@ sct_apply_transfo -i ${file_t2_rootlets}.nii.gz -x nn -w reg_rootlets/warp_anat2
 start_discs=`date +%s`
 sct_register_to_template -i ${file_t2}.nii.gz -s ${file_t2}_seg.nii.gz -ldisc ${file_t2}_seg_labeled_discs.nii.gz -ofolder reg_discs -qc $PATH_QC
 end_discs=`date +%s`
-runtime=$((end_discs-start_discs))
-echo "+++++++++++ TIME: Duration of of discs reg2template:    $(($runtime / 3600))hrs $((($runtime / 60) % 60))min $(($runtime % 60))sec"
+runtime_discs=$((end_discs-start_discs))
+echo "+++++++++++ TIME: Duration of of discs reg2template:    $(($runtime_discs / 3600))hrs $((($runtime_discs / 60) % 60))min $(($runtime_discs % 60))sec"
+echo "${SUBJECT},${runtime_discs}" >> ${PATH_RESULTS}/execution_time_discs_reg.csv
+
 # bring spinal nerve rootlets segmentation in template space for comparison!
 sct_apply_transfo -i ${file_t2_rootlets}.nii.gz -x nn -w reg_discs/warp_anat2template.nii.gz -d $SCT_DIR/data/PAM50/template/PAM50_t2.nii.gz -o reg_discs/${file_t2_rootlets}_2template.nii.gz
 
