@@ -138,6 +138,7 @@ runtime_rootlets=$((end_rootlets-start_rootlets))
 echo "+++++++++++ TIME: Duration of of rootlet reg2template:    $(($runtime_rootlets / 3600))hrs $((($runtime_rootlets / 60) % 60))min $(($runtime_rootlets % 60))sec"
 # bring spinal nerve rootlets segmentation in template space for comparison!
 sct_apply_transfo -i ${file_t2_rootlets}.nii.gz -x nn -w reg_rootlets/warp_anat2template.nii.gz -d $SCT_DIR/data/PAM50/template/PAM50_t2.nii.gz -o reg_rootlets/${file_t2_rootlets}_2template.nii.gz
+echo "${SUBJECT},${runtime_rootlets}" >> ${PATH_RESULTS}/execution_time_rootlets_reg.csv
 
 # Run registration without last step for CSA computation
 # sct_register_to_template -i ${file_t2}.nii.gz -s ${file_t2}_seg.nii.gz \
@@ -154,6 +155,7 @@ end_discs=`date +%s`
 runtime_discs=$((end_discs-start_discs))
 echo "+++++++++++ TIME: Duration of of discs reg2template:    $(($runtime_discs / 3600))hrs $((($runtime_discs / 60) % 60))min $(($runtime_discs % 60))sec"
 sct_apply_transfo -i ${file_t2_rootlets}.nii.gz -x nn -w reg_discs/warp_anat2template.nii.gz -d $SCT_DIR/data/PAM50/template/PAM50_t2.nii.gz -o reg_discs/${file_t2_rootlets}_2template.nii.gz
+echo "${SUBJECT},${runtime_discs}" >> ${PATH_RESULTS}/execution_time_discs_reg.csv
 
 
 # Run registration without last step for CSA computation
