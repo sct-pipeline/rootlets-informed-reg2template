@@ -117,7 +117,7 @@ def get_vert_indices(df, vertlevel='VertLevel'):
         ind_vert_mid (np.array): indices of slices corresponding to mid-levels
     """
     # Get vert levels for one certain subject
-    vert = df[(df['participant_id'] == 'sub-01') & (df['group'] == 'disc')][vertlevel] # 'sub-amu01' TODO: add argument for example subject
+    vert = df[(df['participant_id'] == 'sub-amu01') & (df['group'] == 'disc')][vertlevel] # 'sub-amu01' TODO: add argument for example subject
     # Get indexes of where array changes value
     ind_vert = vert.diff()[vert.diff() != 0].index.values
     # Get the beginning of C1
@@ -188,13 +188,22 @@ def read_t2w_pam50(file, group, exclude_list=None):
     return df
 
 
-def plot_ind_sub(df, group, metric, path_out, filename, hue='participant_id'):
+def smooth(y, box_pts):
+    box = np.ones(box_pts)/box_pts
+    y_smooth = np.convolve(y, box, mode='same')
+    return y_smooth
+
+
+
+def plot_ind_sub(df, group, metric, path_out, filename, hue='participant_id', y_min=0.6, y_max=1.2):
     plt.figure()
-    fig, ax = plt.subplots(figsize=(15, 10))
-    sns.lineplot(ax=ax, data=df.loc[df['group'] == group], x="Slice (I->S)", y=metric, hue=hue, linewidth=2)  # errorbar='sd', ,palette=PALETTE[hue]
+    fig, ax = plt.subplots(figsize=(9, 6))
+    sns.lineplot(ax=ax, data=df.loc[df['group'] == group], x="Slice (I->S)", y=metric, hue=hue, linewidth=1)  # errorbar='sd', ,palette=PALETTE[hue]
     # plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.subplots_adjust(right=0.7)
-    ax.set_ylim(0.6, 1.3)
+    ax.set_ylim(y_min, y_max)
+    xmin, xmax = ax.get_xlim()
+    ax.set_xlim(750, xmax-15)
     ymin, ymax = ax.get_ylim()
     ax.get_legend().remove()
     # Get indices of slices corresponding vertebral levels
@@ -219,7 +228,10 @@ def plot_ind_sub(df, group, metric, path_out, filename, hue='participant_id'):
     # Add only horizontal grid lines
     ax.yaxis.grid(True)
     # Move grid to background (i.e. behind other elements)
-    ax.set_axisbelow(True)    
+    ax.set_axisbelow(True)
+    ax.tick_params(axis='both', which='major', labelsize=TICKS_FONT_SIZE)
+    ax.set_ylabel("Normalized CSA", fontsize=LABELS_FONT_SIZE)
+    ax.set_xlabel('Axial Slice #', fontsize=LABELS_FONT_SIZE)
 
     # Save figure
     path_filename = os.path.join(path_out, filename)
@@ -340,6 +352,15 @@ def normalize_csa(df):
     # Normalize MEAN(area) by dividing by the average CSA
     df_with_avg['normalized_mean_area'] = df_with_avg['MEAN(area)'] / df_with_avg['average_mean_area']
 
+    df_with_avg = df_with_avg.sort_values(by=['participant_id', 'Slice (I->S)'])
+
+    # Step 3: Apply the smoothing function to the normalized_mean_area column
+    box_pts = 45  # Smoothing window size
+    df_with_avg['smoothed_normalized_area'] = (
+                df_with_avg.groupby('participant_id')['normalized_mean_area']
+                .transform(lambda x: smooth(x, box_pts))
+                )
+
     return df_with_avg
 
 
@@ -394,28 +415,43 @@ def main():
     logger.info('Number of participants:')
     logger.info(len(np.unique(df_all['participant_id'])))
     create_lineplot(df_all, hue='group')
-    plot_ind_sub(df_all, group='rootlet', metric='normalized_mean_area', path_out=output_folder, filename='csa_persubject_rootlet.png')
-    plot_ind_sub(df_all, group='disc', metric='normalized_mean_area', path_out=output_folder, filename='csa_persubject_disc.png')
+    plot_ind_sub(df_all, group='rootlet', metric='smoothed_normalized_area', path_out=output_folder, filename='csa_persubject_normalized_rootlet.png')
+    plot_ind_sub(df_all, group='disc', metric='smoothed_normalized_area', path_out=output_folder, filename='csa_persubject_normalized_disc.png')
+
+
+    plot_ind_sub(df_all, group='rootlet', metric='MEAN(area)', path_out=output_folder, filename='csa_persubject_rootlet.png', y_min=40, y_max=110)
+    plot_ind_sub(df_all, group='disc', metric='MEAN(area)', path_out=output_folder, filename='csa_persubject_disc.png', y_min=40, y_max=110)
+
 
     df_all = df_all[df_all['VertLevel'] < 7]
     df_all = df_all[df_all['VertLevel'] > 1]
 
     mean_csa_rootlets = df_all[df_all['group'] == 'rootlet']['MEAN(area)'].mean()
     std_csa_rootlets = df_all[df_all['group'] == 'rootlet']['MEAN(area)'].std()
+    
+    mean_csa_rootlets_norm = df_all[df_all['group'] == 'rootlet']['normalized_mean_area'].mean()
+    std_csa_rootlets_norm = df_all[df_all['group'] == 'rootlet']['normalized_mean_area'].std()
+
     cov_rootlets = (std_csa_rootlets/mean_csa_rootlets)*100
     print('COV\n')
     print(cov_rootlets)
-    logger.info(f'Mean CSA for rootlets reg: {mean_csa_rootlets} +- {std_csa_rootlets}')
+    logger.info(f'Mean CSA for rootlets reg between C2 and C7: {mean_csa_rootlets} +- {std_csa_rootlets}')
+    logger.info(f'Mean norm CSA for rootlets reg between C2 and C7: {mean_csa_rootlets_norm} +- {std_csa_rootlets_norm}')
 
+    # Compute metrics for discs-based reg
     mean_csa_discs = df_all[df_all['group'] == 'disc']['MEAN(area)'].mean()
+    mean_csa_discs_norm = df_all[df_all['group'] == 'disc']['normalized_mean_area'].mean()
+
     std_csa_discs = df_all[df_all['group'] == 'disc']['MEAN(area)'].std()
+    std_csa_discs_norm = df_all[df_all['group'] == 'disc']['normalized_mean_area'].std()
+
     cov_discs = (std_csa_discs/mean_csa_discs)*100
+    # normalized_mean_area
     print('COV\n')
     print(cov_discs)
 
-    logger.info(f'Mean CSA for disc reg: {mean_csa_discs} +- {std_csa_discs}')
-    
-    # Keep only VertLevel from C2 to T1
+    logger.info(f'Mean CSA for disc reg between C2 and C7: {mean_csa_discs} +- {std_csa_discs}')
+    logger.info(f'Mean CSA for disc reg between C2 and C7: {mean_csa_discs_norm} +- {std_csa_discs_norm}')
 
 
 if __name__ == "__main__":
