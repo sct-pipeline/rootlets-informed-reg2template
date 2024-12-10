@@ -104,8 +104,7 @@ sct_check_dependencies -short
 # Go to folder where data will be copied and processed
 cd ${PATH_DATA_PROCESSED}
 # Copy source images
-mkdir -p ${SUBJECT}
-rsync -avzh $PATH_DATA/$SUBJECT/ ${SUBJECT}
+rsync -Ravzh ${PATH_DATA}/./${SUBJECT}/anat/${SUBJECT}_*T2w.* .
 # Go to anat folder where all structural data are located
 cd ${SUBJECT}/anat/
 file_t2="${SUBJECT}_space-other_T2w"
