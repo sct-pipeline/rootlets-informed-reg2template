@@ -28,7 +28,6 @@
 - sub-tokyo750w03  # rootlets seg failed missing C7 & C8
 - sub-vallHebron07  # rootlets seg failed C7 overlaps C6
 - sub-vuiisIngenia06  # rootlets seg failed missing C8
-- ub-cmrrb03  # rootlets seg failed missing C8
 - sub-beijingGE02  # rootlets seg failed C5 underseg
 - sub-beijingVerio03  # rootlets seg failed missing C8
 - sub-cmrrb03  # rootlets seg failed missing C8
