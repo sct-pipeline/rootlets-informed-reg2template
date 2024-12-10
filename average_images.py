@@ -30,9 +30,9 @@ def get_parser():
         description="Averages loops through folder to find images and averages them together.")
     parser.add_argument('-path-data', required=True, type=str,
                         help="Path of data_processed folder.")
-    parser.add_argument('-path-file', required=False, type=str,
+    parser.add_argument('-folder', required=False, type=str,
                         default='reg_rootlets',
-                        help="Output warping field filename.")
+                        help="Folder to search for anat2template.nii.gz files. default: reg_rootlets")
     parser.add_argument('-path-out', required=False, type=str,
                         help="Output warping field filename.")
     parser.add_argument('-exclude', required=False, type=str,
@@ -45,9 +45,9 @@ def main():
     parser = get_parser()
     args = parser.parse_args()
     path_data = args.path_data
-    path_file = args.path_file
+    path_file = args.folder
     path_out = args.path_out
-    if args.exclude is not None: 
+    if args.exclude is not None:
         # Check if input yml file exists
         if os.path.isfile(args.exclude):
             fname_yml = args.exclude

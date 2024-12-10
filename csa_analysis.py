@@ -69,6 +69,9 @@ def get_parser():
                         type=str,
                         required=True,
                         help="Folder to right results")
+    parser.add_argument('-ref-subject', required=False, type=str, default='sub-amu01',
+                        help="Name of a reference subject ot use to get discs levels")
+
     parser.add_argument("-exclude",
                         type=str,
                         required=False,
@@ -117,7 +120,7 @@ def get_vert_indices(df, vertlevel='VertLevel'):
         ind_vert_mid (np.array): indices of slices corresponding to mid-levels
     """
     # Get vert levels for one certain subject
-    vert = df[(df['participant_id'] == 'sub-amu01') & (df['group'] == 'disc')][vertlevel] # 'sub-amu01' TODO: add argument for example subject
+    vert = df[(df['participant_id'] == ref) & (df['group'] == 'disc')][vertlevel] # 'sub-amu01' TODO: add argument for example subject
     # Get indexes of where array changes value
     ind_vert = vert.diff()[vert.diff() != 0].index.values
     # Get the beginning of C1
@@ -195,7 +198,7 @@ def smooth(y, box_pts):
 
 
 
-def plot_ind_sub(df, group, metric, path_out, filename, hue='participant_id', y_min=0.6, y_max=1.2):
+def plot_ind_sub(df, group, metric, path_out, filename, hue='participant_id', y_min=0.6, y_max=2):
     plt.figure()
     fig, ax = plt.subplots(figsize=(9, 6))
     sns.lineplot(ax=ax, data=df.loc[df['group'] == group], x="Slice (I->S)", y=metric, hue=hue, linewidth=1)  # errorbar='sd', ,palette=PALETTE[hue]
@@ -329,12 +332,11 @@ def normalize_csa(df):
         suffixes=('', '_target')
     )
 
-    # Step 3: Filter rows within ±slice_range of the target Slice (I->S)
+    #Step 3: Filter rows within ±slice_range of the target Slice (I->S)
     slices_of_interest = merged[
         (merged['Slice (I->S)'] >= merged['Slice (I->S)_target'] - slice_range) &
         (merged['Slice (I->S)'] <= merged['Slice (I->S)_target'] + slice_range)
     ]
-
     # Step 4: Compute the mean of MEAN(area) for each participant
     result = (
         slices_of_interest
@@ -348,7 +350,7 @@ def normalize_csa(df):
 
     # Merge the average CSA back into the original dataframe
     df_with_avg = df.merge(result, on='participant_id', how='left')
-
+    print(df_with_avg['average_mean_area'])
     # Normalize MEAN(area) by dividing by the average CSA
     df_with_avg['normalized_mean_area'] = df_with_avg['MEAN(area)'] / df_with_avg['average_mean_area']
 
@@ -369,7 +371,8 @@ def main():
     args = get_parser().parse_args()
     # Get input argments
     input_folder = os.path.abspath(args.i_folder)
-
+    global ref
+    ref = args.ref_subject
     output_folder = args.o_folder
     # Create output folder if does not exist.
     if not os.path.exists(output_folder):
