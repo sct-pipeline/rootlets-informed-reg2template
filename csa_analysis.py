@@ -37,7 +37,8 @@ METRICS_TO_YLIM = {
     'MEAN(diameter_RL)': (8.5, 16),
     'MEAN(eccentricity)': (0.6, 0.95),
     'MEAN(solidity)': (0.912, 0.999),
-    'std_smoothed_normalized_area': (0,0.2)
+    'std_smoothed_normalized_area': (0, 0.2),
+    'smoothed_normalized_area': (0.9, 1.15)
 }
 
 
@@ -47,7 +48,8 @@ METRIC_TO_AXIS = {
     'MEAN(diameter_RL)': 'Transverse Diameter [mm]',
     'MEAN(eccentricity)': 'Eccentricity [a.u.]',
     'MEAN(solidity)': 'Solidity [%]',
-    'std_smoothed_normalized_area': 'STD (normalized CSA)'
+    'std_smoothed_normalized_area': 'STD (normalized CSA)',
+    'smoothed_normalized_area': 'Normalized CSA'
 }
 
 
@@ -427,7 +429,7 @@ def main():
     plot_ind_sub(df_all, group='rootlet', metric='MEAN(area)', path_out=output_folder, filename='csa_persubject_rootlet.png', y_min=40, y_max=110)
     plot_ind_sub(df_all, group='disc', metric='MEAN(area)', path_out=output_folder, filename='csa_persubject_disc.png', y_min=40, y_max=110)
     create_lineplot(df_all, metric=['std_smoothed_normalized_area'], hue='group', filename='lineplot_std_normalized_csa.png')
-
+    create_lineplot(df_all, metric=['smoothed_normalized_area'], hue='group', filename='lineplot_normalized_csa.png')
     df_all = df_all[df_all['VertLevel'] < 7]
     df_all = df_all[df_all['VertLevel'] > 1]
 
