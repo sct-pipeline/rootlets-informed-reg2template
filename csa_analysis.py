@@ -37,6 +37,7 @@ METRICS_TO_YLIM = {
     'MEAN(diameter_RL)': (8.5, 16),
     'MEAN(eccentricity)': (0.6, 0.95),
     'MEAN(solidity)': (0.912, 0.999),
+    'std_smoothed_normalized_area': (0,0.2)
 }
 
 
@@ -46,6 +47,7 @@ METRIC_TO_AXIS = {
     'MEAN(diameter_RL)': 'Transverse Diameter [mm]',
     'MEAN(eccentricity)': 'Eccentricity [a.u.]',
     'MEAN(solidity)': 'Solidity [%]',
+    'std_smoothed_normalized_area': 'STD (normalized CSA)'
 }
 
 
@@ -197,7 +199,6 @@ def smooth(y, box_pts):
     return y_smooth
 
 
-
 def plot_ind_sub(df, group, metric, path_out, filename, hue='participant_id', y_min=0.6, y_max=2):
     plt.figure()
     fig, ax = plt.subplots(figsize=(9, 6))
@@ -243,7 +244,7 @@ def plot_ind_sub(df, group, metric, path_out, filename, hue='participant_id', y_
 
 
 
-def create_lineplot(df, hue=None, filename=None):
+def create_lineplot(df, metric=METRICS, hue=None, filename=None):
     """
     Create lineplot for individual metrics per vertebral levels.
     Note: we are ploting slices not levels to avoid averaging across levels.
@@ -258,7 +259,7 @@ def create_lineplot(df, hue=None, filename=None):
     axs = axes.ravel()
 
     # Loop across metrics
-    for index, metric in enumerate(METRICS):
+    for index, metric in enumerate(metric):
         # Note: we are ploting slices not levels to avoid averaging across levels
         if hue == 'sex' or hue == 'group':
             sns.lineplot(ax=axs[index], x="Slice (I->S)", y=metric, data=df, errorbar='sd', hue=hue, linewidth=2,
@@ -310,10 +311,11 @@ def create_lineplot(df, hue=None, filename=None):
         axs[index].set_axisbelow(True)
 
     # Save figure
-    if hue:
-        filename = 'lineplot_per' + hue + '.png'
-    else:
-        filename = 'lineplot.png'
+    if filename is None:
+        if hue:
+            filename = 'lineplot_per' + hue + '.png'
+        else:
+            filename = 'lineplot.png'
     plt.savefig(filename, dpi=500, bbox_inches='tight')
     logger.info('Figure saved: ' + filename)
 
@@ -332,7 +334,7 @@ def normalize_csa(df):
         suffixes=('', '_target')
     )
 
-    #Step 3: Filter rows within ±slice_range of the target Slice (I->S)
+    # Step 3: Filter rows within ±slice_range of the target Slice (I->S)
     slices_of_interest = merged[
         (merged['Slice (I->S)'] >= merged['Slice (I->S)_target'] - slice_range) &
         (merged['Slice (I->S)'] <= merged['Slice (I->S)_target'] + slice_range)
@@ -362,7 +364,8 @@ def normalize_csa(df):
                 df_with_avg.groupby('participant_id')['normalized_mean_area']
                 .transform(lambda x: smooth(x, box_pts))
                 )
-
+    # Compute STD of normalized csa
+    df_with_avg['std_smoothed_normalized_area'] = df_with_avg.groupby('Slice (I->S)')['smoothed_normalized_area'].std()
     return df_with_avg
 
 
@@ -421,17 +424,16 @@ def main():
     plot_ind_sub(df_all, group='rootlet', metric='smoothed_normalized_area', path_out=output_folder, filename='csa_persubject_normalized_rootlet.png')
     plot_ind_sub(df_all, group='disc', metric='smoothed_normalized_area', path_out=output_folder, filename='csa_persubject_normalized_disc.png')
 
-
     plot_ind_sub(df_all, group='rootlet', metric='MEAN(area)', path_out=output_folder, filename='csa_persubject_rootlet.png', y_min=40, y_max=110)
     plot_ind_sub(df_all, group='disc', metric='MEAN(area)', path_out=output_folder, filename='csa_persubject_disc.png', y_min=40, y_max=110)
-
+    create_lineplot(df_all, metric=['std_smoothed_normalized_area'], hue='group', filename='lineplot_std_normalized_csa.png')
 
     df_all = df_all[df_all['VertLevel'] < 7]
     df_all = df_all[df_all['VertLevel'] > 1]
 
     mean_csa_rootlets = df_all[df_all['group'] == 'rootlet']['MEAN(area)'].mean()
     std_csa_rootlets = df_all[df_all['group'] == 'rootlet']['MEAN(area)'].std()
-    
+
     mean_csa_rootlets_norm = df_all[df_all['group'] == 'rootlet']['normalized_mean_area'].mean()
     std_csa_rootlets_norm = df_all[df_all['group'] == 'rootlet']['normalized_mean_area'].std()
 
@@ -459,4 +461,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
