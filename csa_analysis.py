@@ -17,6 +17,7 @@ import seaborn as sns
 from datetime import datetime
 import scipy.stats as stats
 import yaml
+from scipy.signal import find_peaks
 
 
 FNAME_LOG = 'log_stats.txt'
@@ -201,15 +202,18 @@ def smooth(y, box_pts):
     return y_smooth
 
 
-def plot_ind_sub(df, group, metric, path_out, filename, hue='participant_id', y_min=0.6, y_max=2):
+def plot_ind_sub(df, group, metric, path_out, filename, hue='participant_id', y_min=0.8, y_max=1.2, peak_df=None):
     plt.figure()
     fig, ax = plt.subplots(figsize=(9, 6))
-    sns.lineplot(ax=ax, data=df.loc[df['group'] == group], x="Slice (I->S)", y=metric, hue=hue, linewidth=1)  # errorbar='sd', ,palette=PALETTE[hue]
+    sns.lineplot(ax=ax, data=df.loc[df['group'] == group], x="Slice (I->S)", y=metric, hue=hue, linewidth=1, zorder=1, alpha=0.8)  # errorbar='sd', ,palette=PALETTE[hue]
+    if peak_df is not None:
+        sns.scatterplot(data=peak_df.loc[peak_df['group'] == group], x='Slice (I->S)', y=metric, hue=hue, style='participant_id', s=30, ax=ax, markers='o', zorder=2, edgecolor='black')
+
     # plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.subplots_adjust(right=0.7)
     ax.set_ylim(y_min, y_max)
     xmin, xmax = ax.get_xlim()
-    ax.set_xlim(750, xmax-15)
+    ax.set_xlim(775, xmax-15)
     ymin, ymax = ax.get_ylim()
     ax.get_legend().remove()
     # Get indices of slices corresponding vertebral levels
@@ -322,9 +326,55 @@ def create_lineplot(df, metric=METRICS, hue=None, filename=None):
     logger.info('Figure saved: ' + filename)
 
 
+def detect_peaks(data, y_col, x_col, height=None, prominence=None, distance=None, width=None):
+    """
+    Detect peaks in a specified column of a pandas DataFrame.
+    
+    Parameters:
+        data (pd.DataFrame): Input DataFrame sorted by x-axis (e.g., Slice).
+        y_col (str): Column name to detect peaks in (e.g., smoothed values).
+        x_col (str): Column corresponding to x-axis (e.g., Slice).
+        height (float): Minimum height of peaks.
+        prominence (float): Minimum prominence of peaks.
+        distance (int): Minimum distance between peaks (in terms of data points).
+
+    Returns:
+        pd.DataFrame: A DataFrame containing detected peaks with x and y values.
+    """
+    peaks_results = []
+
+    # Group by 'group' and 'participant_id' to detect peaks separately for each
+    for (group, participant), group_df in data.groupby(['group', 'participant_id']):
+        y = group_df[y_col].values
+        x = group_df[x_col].values
+
+        # Detect peaks
+        peaks, properties = find_peaks(y, height=height, prominence=prominence, distance=distance, width=width)
+
+        if len(peaks) > 0:
+            # If multiple peaks, choose the most prominent peak
+            max_prominence_idx = np.argmax(properties['prominences'])
+            peak_idx = peaks[max_prominence_idx]
+        else:
+            # If no peaks are detected, fall back to the maximum value
+            peak_idx = np.argmax(y)
+
+        # Store results
+        peaks_results.append({
+            'group': group,
+            'participant_id': participant,
+            x_col: x[peak_idx],
+            y_col: y[peak_idx]
+        })
+
+    # Convert results to a DataFrame
+    peaks_df = pd.DataFrame(peaks_results)
+    return peaks_df
+
+
 def normalize_csa(df):
     target_levels = [2.0, 3.0]  # VertLevel values to target
-    slice_range = 10  # Number of slices above and below
+    slice_range = 5  # Number of slices above and below
     # Filter rows corresponding to the target vertebral levels
     level_filtered = df[df['VertLevel'].isin(target_levels)]
 
@@ -354,14 +404,13 @@ def normalize_csa(df):
 
     # Merge the average CSA back into the original dataframe
     df_with_avg = df.merge(result, on='participant_id', how='left')
-    print(df_with_avg['average_mean_area'])
     # Normalize MEAN(area) by dividing by the average CSA
     df_with_avg['normalized_mean_area'] = df_with_avg['MEAN(area)'] / df_with_avg['average_mean_area']
 
     df_with_avg = df_with_avg.sort_values(by=['participant_id', 'Slice (I->S)'])
 
     # Step 3: Apply the smoothing function to the normalized_mean_area column
-    box_pts = 45  # Smoothing window size
+    box_pts = 55  # Smoothing window size
     df_with_avg['smoothed_normalized_area'] = (
                 df_with_avg.groupby('participant_id')['normalized_mean_area']
                 .transform(lambda x: smooth(x, box_pts))
@@ -416,15 +465,26 @@ def main():
     df_rootlets = normalize_csa(df_rootlets)
     df_discs = normalize_csa(df_discs)
     df_all = pd.concat([df_rootlets, df_discs], ignore_index=True)
-
-    print(df_all)
-    df_all = df_all[df_all['VertLevel'] < 8]
+    df_all = df_all[df_all['VertLevel'] < 7]
     df_all = df_all[df_all['VertLevel'] > 1]
+
+    logger.info("Detect peak of cervical enlargement")
+    peaks_df = detect_peaks(
+               df_all,
+               y_col='smoothed_normalized_area',
+               x_col='Slice (I->S)',
+               height=None,       # Set minimum height (optional)
+               prominence=0.05,    # Set minimum prominence to filter significant peaks
+               distance=None,         # Minimum distance between peaks
+               width=None
+    )
+    print(peaks_df)
+    peaks_df.to_csv(os.path.join(output_folder, 'peaks.csv'))
     logger.info('Number of participants:')
     logger.info(len(np.unique(df_all['participant_id'])))
     create_lineplot(df_all, hue='group')
-    plot_ind_sub(df_all, group='rootlet', metric='smoothed_normalized_area', path_out=output_folder, filename='csa_persubject_normalized_rootlet.png')
-    plot_ind_sub(df_all, group='disc', metric='smoothed_normalized_area', path_out=output_folder, filename='csa_persubject_normalized_disc.png')
+    plot_ind_sub(df_all, group='rootlet', metric='smoothed_normalized_area', path_out=output_folder, filename='csa_persubject_normalized_rootlet.png', peak_df=peaks_df)
+    plot_ind_sub(df_all, group='disc', metric='smoothed_normalized_area', path_out=output_folder, filename='csa_persubject_normalized_disc.png', peak_df=peaks_df)
 
     plot_ind_sub(df_all, group='rootlet', metric='MEAN(area)', path_out=output_folder, filename='csa_persubject_rootlet.png', y_min=40, y_max=110)
     plot_ind_sub(df_all, group='disc', metric='MEAN(area)', path_out=output_folder, filename='csa_persubject_disc.png', y_min=40, y_max=110)
@@ -440,8 +500,8 @@ def main():
     std_csa_rootlets_norm = df_all[df_all['group'] == 'rootlet']['normalized_mean_area'].std()
 
     cov_rootlets = (std_csa_rootlets/mean_csa_rootlets)*100
-    print('COV\n')
-    print(cov_rootlets)
+    logger.info('COV\n')
+    logger.info(cov_rootlets)
     logger.info(f'Mean CSA for rootlets reg between C2 and C7: {mean_csa_rootlets} +- {std_csa_rootlets}')
     logger.info(f'Mean norm CSA for rootlets reg between C2 and C7: {mean_csa_rootlets_norm} +- {std_csa_rootlets_norm}')
 
@@ -454,8 +514,8 @@ def main():
 
     cov_discs = (std_csa_discs/mean_csa_discs)*100
     # normalized_mean_area
-    print('COV\n')
-    print(cov_discs)
+    logger.info('COV\n')
+    logger.info(cov_discs)
 
     logger.info(f'Mean CSA for disc reg between C2 and C7: {mean_csa_discs} +- {std_csa_discs}')
     logger.info(f'Mean CSA for disc reg between C2 and C7: {mean_csa_discs_norm} +- {std_csa_discs_norm}')
