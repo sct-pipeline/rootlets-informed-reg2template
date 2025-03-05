@@ -22,7 +22,7 @@ SUBJECT=$1
 
 # Save script path
 path_source=$(dirname $PATH_DATA)
-PATH_DERIVATIVES="${path_source}/labels"
+PATH_DERIVATIVES="${$PATH_DATA}/derivatives/labels"
 
 # get starting time:
 start=`date +%s`
@@ -36,7 +36,7 @@ label_if_does_not_exist(){
   local file_seg="$2"
   # Update global variable with segmentation file name
   # Remove space other in filename 
-  suffix="_space-other"
+  #suffix="_space-other"
   FILELABEL="${file//$suffix/}_label-discs_dlabel"
   FILELABELMANUAL="${PATH_DERIVATIVES}/${SUBJECT}/anat/${FILELABEL}.nii.gz"
   echo "Looking for manual label: $FILELABELMANUAL"
@@ -72,7 +72,7 @@ segment_if_does_not_exist(){
   else
     echo "Not found. Proceeding with automatic segmentation."
     # Segment spinal cord
-    sct_deepseg -i ${file}.nii.gz -task seg_sc_contrast_agnostic -qc ${PATH_QC} -qc-subject ${SUBJECT} -o ${FILESEG}.nii.gz
+    sct_deepseg -i ${file}.nii.gz -task seg_sc_contrast_agnostic -qc ${PATH_QC} -largest 1 -qc-subject ${SUBJECT} -o ${FILESEG}.nii.gz
   fi
 }
 
@@ -107,7 +107,7 @@ cd ${PATH_DATA_PROCESSED}
 rsync -Ravzh ${PATH_DATA}/./${SUBJECT}/anat/${SUBJECT}_*T2w.* .
 # Go to anat folder where all structural data are located
 cd ${SUBJECT}/anat/
-file_t2="${SUBJECT}_space-other_T2w"
+file_t2="${SUBJECT}_T2w"
 
 # 1. Segment spinal cord
 segment_if_does_not_exist $file_t2
