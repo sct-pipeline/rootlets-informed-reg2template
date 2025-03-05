@@ -229,7 +229,7 @@ def plot_ind_sub(df, group, metric, path_out, filename, hue='participant_id', y_
             ax.text(df.loc[ind_vert_mid[idx], 'Slice (I->S)'], ymin, level, horizontalalignment='center',
                             verticalalignment='bottom', color='black', fontsize=TICKS_FONT_SIZE)
         else:
-            level = 'C' + str(vert[x])
+            level = 'C' + str(int(vert[x]))
             ax.text(df.loc[ind_vert_mid[idx], 'Slice (I->S)'], ymin, level, horizontalalignment='center',
                             verticalalignment='bottom', color='black', fontsize=TICKS_FONT_SIZE)
 
@@ -478,7 +478,11 @@ def main():
                distance=None,         # Minimum distance between peaks
                width=None
     )
-    print(peaks_df)
+    print(peaks_df['Slice (I->S)'].max())
+    # Print the 10 maximum values and related subjects
+    top_10_peaks = peaks_df.nlargest(10, 'Slice (I->S)')
+    print("Top 10 maximum values and related subjects:")
+    print(top_10_peaks[['participant_id', 'smoothed_normalized_area', 'Slice (I->S)']])
     peaks_df.to_csv(os.path.join(output_folder, 'peaks.csv'))
     logger.info('Number of participants:')
     logger.info(len(np.unique(df_all['participant_id'])))
