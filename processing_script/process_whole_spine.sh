@@ -132,9 +132,9 @@ file_t2=${file_t2}_crop
 segment_rootlets_if_does_not_exist $file_t2
 file_t2_rootlets=$FILELABEL
 # Create center-of-mass of rootlets
-sct_label_utils -i ${file_t2_rootlets}.nii.gz -cubic-to-point -o ${file_t2_rootlets}_mid.nii.gz
-sct_label_utils -i ${file_t2}_seg.nii.gz -project-centerline ${file_t2_rootlets}_mid.nii.gz  -o ${file_t2_rootlets}_mid_center.nii.gz
-sct_qc -i ${file_t2}.nii.gz  -s ${file_t2_rootlets}_mid_center.nii.gz -p sct_label_utils -qc $PATH_QC
+#sct_label_utils -i ${file_t2_rootlets}.nii.gz -cubic-to-point -o ${file_t2_rootlets}_mid.nii.gz
+#sct_label_utils -i ${file_t2}_seg.nii.gz -project-centerline ${file_t2_rootlets}_mid.nii.gz  -o ${file_t2_rootlets}_mid_center.nii.gz
+#sct_qc -i ${file_t2}.nii.gz  -s ${file_t2_rootlets}_mid_center.nii.gz -p sct_label_utils -qc $PATH_QC
 
 
 # 4. Register T2-w image to PAM50 template # TODO: add time for each
