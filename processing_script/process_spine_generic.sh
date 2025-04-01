@@ -21,8 +21,7 @@ trap "echo Caught Keyboard Interrupt within script. Exiting now.; exit" INT
 SUBJECT=$1
 
 # Save script path
-path_source=$(dirname $PATH_DATA)
-PATH_DERIVATIVES="${$PATH_DATA}/derivatives/labels"
+PATH_DERIVATIVES="${PATH_DATA}/derivatives/labels"
 
 # get starting time:
 start=`date +%s`
@@ -62,7 +61,7 @@ segment_if_does_not_exist(){
 
   # Update global variable with segmentation file name
   FILESEG="${file}_seg"
-  FILESEGMANUAL="${path_source}/labels_softseg_bin/${SUBJECT}/${folder_contrast}/${file}_desc-softseg_label-SC_seg.nii.gz"
+  FILESEGMANUAL="${PATH_DATA}/derivatives/labels_softseg_bin/${SUBJECT}/${folder_contrast}/${file}_desc-softseg_label-SC_seg.nii.gz"
   echo
   echo "Looking for manual segmentation: $FILESEGMANUAL"
   if [[ -e $FILESEGMANUAL ]]; then
