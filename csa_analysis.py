@@ -205,10 +205,9 @@ def smooth(y, box_pts):
 def plot_ind_sub(df, group, metric, path_out, filename, hue='participant_id', y_min=0.8, y_max=1.2, peak_df=None):
     plt.figure()
     fig, ax = plt.subplots(figsize=(9, 6))
-    sns.lineplot(ax=ax, data=df.loc[df['group'] == group], x="Slice (I->S)", y=metric, hue=hue, linewidth=1, zorder=1, alpha=0.8)  # errorbar='sd', ,palette=PALETTE[hue]
+    sns.lineplot(ax=ax, data=df.loc[df['group'] == group], x="Slice (I->S)", y=metric, hue=hue, linewidth=1, zorder=1, alpha=0.8)  # errorbar='sd'
     if peak_df is not None:
-        sns.scatterplot(data=peak_df.loc[peak_df['group'] == group], x='Slice (I->S)', y=metric, hue=hue, style='participant_id', s=30, ax=ax, markers='o', zorder=2, edgecolor='black')
-
+        sns.scatterplot(data=peak_df.loc[peak_df['group'] == group], x='Slice (I->S)', hue=hue, y=metric, style='participant_id', s=30, ax=ax, markers='o', zorder=2, edgecolor='black')
     # plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.subplots_adjust(right=0.7)
     ax.set_ylim(y_min, y_max)
