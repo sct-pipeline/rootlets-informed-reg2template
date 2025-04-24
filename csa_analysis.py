@@ -56,7 +56,7 @@ METRIC_TO_AXIS = {
 
 PALETTE = {
     'sex': {'M': 'blue', 'F': 'red'},
-    'group': {'rootlet': 'blue', 'disc': '#e31a1c'}
+    'group': {'rootlet': '#e31a1c', 'disc': 'blue'}
     }
 
 
@@ -73,7 +73,7 @@ def get_parser():
     parser.add_argument("-o-folder",
                         type=str,
                         required=True,
-                        help="Folder to right results")
+                        help="Folder to write results")
     parser.add_argument('-ref-subject', required=False, type=str, default='sub-amu01',
                         help="Name of a reference subject ot use to get discs levels")
 
@@ -203,49 +203,68 @@ def smooth(y, box_pts):
 
 
 def plot_ind_sub(df, group, metric, path_out, filename, hue='participant_id', y_min=0.8, y_max=1.2, peak_df=None):
+    fig_size = (7, 6)
+    font_size = LABELS_FONT_SIZE
+
+    # Plot individual subject lines
     plt.figure()
-    fig, ax = plt.subplots(figsize=(9, 6))
-    sns.lineplot(ax=ax, data=df.loc[df['group'] == group], x="Slice (I->S)", y=metric, hue=hue, linewidth=1, zorder=1, alpha=0.8)  # errorbar='sd'
+    fig, ax = plt.subplots(figsize=fig_size)
+    sns.lineplot(ax=ax, data=df.loc[df['group'] == group], x="Slice (I->S)", y=metric, hue=hue, linewidth=1, zorder=1, alpha=0.8)
     if peak_df is not None:
         sns.scatterplot(data=peak_df.loc[peak_df['group'] == group], x='Slice (I->S)', hue=hue, y=metric, style='participant_id', s=30, ax=ax, markers='o', zorder=2, edgecolor='black')
-    # plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-    plt.subplots_adjust(right=0.7)
     ax.set_ylim(y_min, y_max)
     xmin, xmax = ax.get_xlim()
-    ax.set_xlim(775, xmax-15)
+    ax.set_xlim(775, xmax - 15)
     ymin, ymax = ax.get_ylim()
     ax.get_legend().remove()
+
     # Get indices of slices corresponding vertebral levels
     vert, ind_vert, ind_vert_mid = get_vert_indices(df, vertlevel='VertLevel')
-    # Insert a vertical line for each intervertebral disc
     for idx, x in enumerate(ind_vert[1:-1]):
         ax.axvline(df.loc[x, 'Slice (I->S)'], color='black', linestyle='--', alpha=0.5, zorder=0)
-    # Insert a text label for each vertebral level
     for idx, x in enumerate(ind_vert_mid, 0):
-        # Deal with T1 label (C8 -> T1)
         if vert[x] > 7:
             level = 'T' + str(vert[x] - 7)
-            ax.text(df.loc[ind_vert_mid[idx], 'Slice (I->S)'], ymin, level, horizontalalignment='center',
-                            verticalalignment='bottom', color='black', fontsize=TICKS_FONT_SIZE)
         else:
             level = 'C' + str(int(vert[x]))
-            ax.text(df.loc[ind_vert_mid[idx], 'Slice (I->S)'], ymin, level, horizontalalignment='center',
-                            verticalalignment='bottom', color='black', fontsize=TICKS_FONT_SIZE)
+        ax.text(df.loc[ind_vert_mid[idx], 'Slice (I->S)'], ymin, level, horizontalalignment='center',
+                verticalalignment='bottom', color='black', fontsize=font_size)
 
-    # Invert x-axis
     ax.invert_xaxis()
-    # Add only horizontal grid lines
-    ax.yaxis.grid(True)
-    # Move grid to background (i.e. behind other elements)
     ax.set_axisbelow(True)
     ax.tick_params(axis='both', which='major', labelsize=TICKS_FONT_SIZE)
-    ax.set_ylabel("Normalized CSA", fontsize=LABELS_FONT_SIZE)
-    ax.set_xlabel('Axial Slice #', fontsize=LABELS_FONT_SIZE)
+    ax.set_ylabel("Normalized CSA", fontsize=font_size)
+    ax.set_xlabel('Axial Slice #', fontsize=font_size)
 
-    # Save figure
     path_filename = os.path.join(path_out, filename)
-    plt.savefig(path_filename, dpi=500, bbox_inches='tight')
+    plt.savefig(path_filename, dpi=300, bbox_inches='tight')
     logger.info('Figure saved: ' + path_filename)
+
+    # Create density plot with peaks
+    if peak_df is not None:
+        plt.figure()
+        fig_kde, ax = plt.subplots(figsize=fig_size)
+        sns.kdeplot(data=peak_df, x='Slice (I->S)', y=metric, hue='group', fill=True, common_norm=True, hue_order=['disc','rootlet'], alpha=0.7, ax=ax, palette=PALETTE['group'])
+        ax.get_legend().remove()
+        ax.set_xlabel('Axial Slice #', fontsize=font_size)
+        ax.set_ylabel('Density', fontsize=font_size)
+        ax.tick_params(axis='both', which='major', labelsize=TICKS_FONT_SIZE)
+        ax.set_xlim(775, xmax - 15)
+        #ymin, ymax = ax.get_ylim()
+        ax.set_ylim(y_min, y_max)
+        for idx, x in enumerate(ind_vert[1:-1]):
+            ax.axvline(df.loc[x, 'Slice (I->S)'], color='black', linestyle='--', alpha=0.5, zorder=0)
+        for idx, x in enumerate(ind_vert_mid, 0):
+            if vert[x] < 7:
+                level = 'C' + str(int(vert[x]))
+                ax.text(df.loc[ind_vert_mid[idx], 'Slice (I->S)'], ymin, level, horizontalalignment='center',
+                        verticalalignment='bottom', color='black', fontsize=font_size)
+
+        ax.invert_xaxis()
+        plt.tight_layout()
+        plt.savefig(os.path.join(path_out, "density.png"), dpi=300, bbox_inches='tight')
+        logger.info(f'Figure saved: {os.path.join(path_out, "density.png")}')
+
 
 
 
