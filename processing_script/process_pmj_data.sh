@@ -62,6 +62,7 @@ segment_if_does_not_exist(){
   if [[ -e $FILESEGMANUAL ]]; then
     echo "Found! Using manual segmentation."
     rsync -avzh $FILESEGMANUAL ${FILESEG}.nii.gz
+    sct_image -i ${FILESEG}.nii.gz -set-sform-to-qform
     sct_qc -i ${file}.nii.gz -s ${FILESEG}.nii.gz -p sct_deepseg_sc -qc ${PATH_QC} -qc-subject ${SUBJECT}
   else
     echo "Not found. Proceeding with automatic segmentation."
@@ -126,7 +127,7 @@ sct_qc -i ${file_t2}.nii.gz  -s ${file_t2_rootlets}_mid_center.nii.gz -p sct_lab
 # 4. Register T2-w image to PAM50 template # TODO: add time for each
 # With rootlets
 start_rootlets=`date +%s`
-sct_register_to_template -i ${file_t2}.nii.gz -s ${file_t2}_seg.nii.gz -ldisc ${file_t2}_seg_labeled_discs3.nii.gz  -lrootlet ${file_t2_rootlets}.nii.gz  -ofolder reg_rootlets -qc $PATH_QC
+sct_register_to_template -i ${file_t2}.nii.gz -s ${file_t2}_seg.nii.gz  -lrootlet ${file_t2_rootlets}.nii.gz  -ofolder reg_rootlets -qc $PATH_QC
 #sct_register_to_template -i ${file_t2}.nii.gz -s ${file_t2}_seg.nii.gz -ldisc ${file_t2_rootlets}_mid_center.nii.gz  -lrootlet ${file_t2_rootlets}.nii.gz  -ofolder reg_rootlets -qc $PATH_QC
 end_rootlets=`date +%s`
 runtime_rootlets=$((end_rootlets-start_rootlets))
