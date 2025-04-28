@@ -7,7 +7,7 @@ Spinal rootlets-informed registration to the template
 ### Datasets
 * Spine Generic Multi-subject dataset version [r20250310](https://github.com/spine-generic/data-multi-subject/releases/tag/r20250310)
 * Spinal Cord Head Positions dataset version [v1.1.1](https://openneuro.org/datasets/ds004507/versions/1.1.1)
-## Instalation
+## Installation
 Clone Github repository
 ```
 git clone git@github.com:sct-pipeline/rootlets-informed-reg2template.git
