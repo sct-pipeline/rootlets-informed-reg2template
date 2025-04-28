@@ -1,0 +1,37 @@
+- sub-vuiisIngenia05  # rootlets seg failed missing C5
+- sub-vallHebron03  # rootlets seg failed missing C5
+- sub-vallHebron02  # rootlets seg failed missing C4
+- sub-vallHebron01  # rootlets seg failed missing C6
+- sub-tokyo750w06  # rootlets seg failed missing C5 & C7
+- sub-tokyo750w04  # rootlets seg failed missing C5 & C6
+- sub-stanford01  # rootlets seg failed missing C7
+- sub-mniS05  # rootlets seg failed missing C4 (stenosis)
+- sub-beijingGE03
+- sub-beijingGE04
+- sub-beijingVerio02
+- sub-beijingVerio04
+- sub-brnoUhb02
+- sub-brnoUhb03 
+- sub-brnoCeitec06 # rootlets seg failed missing C8
+- sub-cmrrb05  # rootlets seg failed missing C5, C6, C7, C8
+- sub-fslAchieva01  # rootlets seg failed missing C8
+- sub-fslAchieva02  # rootlets seg failed C8 bad
+- sub-geneva03  # rootlets seg failed C6/C7, too close
+- sub-mpicbs02  # rootlets seg failed C5 & C6 underseg
+- sub-pavia03  # rootlets seg failed missing C8
+- sub-perform02  # rootlets seg failed missing C7 & C8
+- sub-perform01  # rootlets seg failed missing C8
+- sub-perform03  # rootlets seg error at C6
+- sub-sherbrooke06  # rootlets seg failed missing C8
+- sub-strasbourg05  # rootlets seg failed missing C8
+- sub-tokyo750w02  # rootlets seg failed missing C7 & C8
+- sub-tokyo750w03  # rootlets seg failed missing C7 & C8
+- sub-vallHebron07  # rootlets seg failed C7 overlaps C6
+- sub-vuiisIngenia06  # rootlets seg failed missing C8
+- sub-beijingGE02  # rootlets seg failed C5 underseg
+- sub-beijingVerio03  # rootlets seg failed missing C8
+- sub-cmrrb03  # rootlets seg failed missing C8
+- sub-tokyo750w05  # rootlets seg failed missing C8
+- sub-beijingGE01  # investigate, maybe sform, or qform error...
+- sub-brnoUhb07  # investigate, maybe sform, or qform error...
+- sub-brnoUhb08   # investigate, maybe sform, or qform error...
