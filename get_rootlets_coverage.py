@@ -215,7 +215,9 @@ def get_start_stop_spinal_levels(file, type_reg=None, d_PAM50=None):
             if overlap_start < overlap_end:
                 overlap_length = overlap_end - overlap_start
                 total_rootlets_length = stop - start
-                overlap = (overlap_length / total_rootlets_length) * 100
+                total_rootlets_length_PAM50 = end_pam50 - start_pam50
+                #overlap = (overlap_length / total_rootlets_length_PAM50) * 100
+                overlap = (2*overlap_length / (total_rootlets_length_PAM50 + total_rootlets_length)) * 100
             else:
                 overlap = 0
             #print("Overlap", overlap, " %")
@@ -260,8 +262,10 @@ def main():
 
     # Add PAM50 template
     path_sct = os.environ.get('SCT_DIR')
-    path_rootlets_PAM50 = path_sct +'/data/PAM50/template/PAM50_rootlets.nii.gz'
+    #path_rootlets_PAM50 = path_sct +'/data/PAM50/template/PAM50_rootlets.nii.gz'
+    path_rootlets_PAM50 ='~/datasets/PAM50/template/PAM50_rootlets.nii.gz'
     df_PAM50 = pd.DataFrame(get_start_stop_spinal_levels(path_rootlets_PAM50))
+    print("PAM50 rootlets coverage:")
     print(df_PAM50)
     
     dict_list = []
