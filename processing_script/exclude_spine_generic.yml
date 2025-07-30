@@ -10,8 +10,14 @@
 - sub-beijingGE04
 - sub-beijingVerio02
 - sub-beijingVerio04
+- sub-brnoUhb01
 - sub-brnoUhb02
 - sub-brnoUhb03 
+- sub-brnoUhb04   # investigate
+- sub-brnoUhb05   # investigate
+- sub-brnoUhb06   # investigate
+- sub-brnoUhb07  # investigate, maybe sform, or qform error...
+- sub-brnoUhb08   # investigate, maybe sform, or qform error...
 - sub-brnoCeitec06 # rootlets seg failed missing C8
 - sub-cmrrb05  # rootlets seg failed missing C5, C6, C7, C8
 - sub-fslAchieva01  # rootlets seg failed missing C8
@@ -33,5 +39,3 @@
 - sub-cmrrb03  # rootlets seg failed missing C8
 - sub-tokyo750w05  # rootlets seg failed missing C8
 - sub-beijingGE01  # investigate, maybe sform, or qform error...
-- sub-brnoUhb07  # investigate, maybe sform, or qform error...
-- sub-brnoUhb08   # investigate, maybe sform, or qform error...

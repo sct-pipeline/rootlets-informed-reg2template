@@ -33,6 +33,11 @@ For disc-based registration
 python average_images.py -path-data <PATH_DATA_PROCESSED> -path-file reg_discs -path-out <PATH_RESULTS> -exclude processing_script/exclude_spine_generic.yml 
 ```
 
+To compute overlap metrics:
+```
+python get_rootlets_coverage.py -path-data ~<PATH_DATA_PROCESSED> -path-out <PATH_RESULTS> -exclude processing_script/exclude_spine_generic.yml
+```
+
 ### Morphometric analysis
 
 ```
