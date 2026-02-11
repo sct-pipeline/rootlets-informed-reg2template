@@ -965,7 +965,7 @@ def main():
     create_lineplot(df.loc[df['method'] == name_SC_1], hue=None, path_out=path_out, filename='lineplot_' + name_SC_1 + '.png')        # across all subjects
     create_lineplot(df.loc[df['method'] == name_SC_2], hue=None, path_out=path_out, filename='lineplot_' + name_SC_2 + '.png')        # across all subjects
     # Create line plot of STD:
-    fig, axes = plt.subplots(2, 4, figsize=(20, 10))
+    fig, axes = plt.subplots(2, 3, figsize=(20, 10))
     axs = axes.ravel()
     for index, metric in enumerate(METRICS):
         hue = 'method'
@@ -978,6 +978,35 @@ def main():
             hue=hue, palette=color_palette, linewidth=2)
         axs[index].invert_xaxis()
         axs[index].set_ylabel(f'STD of {METRIC_TO_TITLE[metric]}', fontsize=LABELS_FONT_SIZE)
+        axs[index].spines['right'].set_visible(False)
+        axs[index].spines['left'].set_visible(False)
+        axs[index].spines['top'].set_visible(False)
+        axs[index].spines['bottom'].set_visible(True)
+
+        # Get indices of slices corresponding vertebral levels
+        vert, ind_vert, ind_vert_mid = get_vert_indices(df)
+        # Insert a vertical line for each intervertebral disc
+        for idx, x in enumerate(ind_vert[1:-1]):
+            axs[index].axvline(df.loc[x, 'Slice (I->S)'], color='black', linestyle='--', alpha=0.5, zorder=0)
+        ymin, ymax = axs[index].get_ylim()
+        # Insert a text label for each vertebral level
+        for idx, x in enumerate(ind_vert_mid, 0):
+            # Deal with T1 label (C8 -> T1)
+            if vert[x] > 8:
+                level = 'T' + str(vert[x] - 8)
+                axs[index].text(df.loc[ind_vert_mid[idx], 'Slice (I->S)'], ymin, level, horizontalalignment='center',
+                                verticalalignment='bottom', color='black', fontsize=TICKS_FONT_SIZE)
+
+            else:
+                level = 'C' + str(vert[x])
+                axs[index].text(df.loc[ind_vert_mid[idx], 'Slice (I->S)'], ymin, level, horizontalalignment='center',
+                                verticalalignment='bottom', color='black', fontsize=TICKS_FONT_SIZE)
+
+            # Add only horizontal grid lines
+        axs[index].yaxis.grid(True)
+        # Move grid to background (i.e. behind other elements)
+        axs[index].set_axisbelow(True)
+
     fig.savefig(os.path.join(path_out, 'lineplot_std.png'), dpi=300, bbox_inches='tight')
     # Compute statistics between methods
     logger.info(f'\nComparing methods...')
@@ -1010,6 +1039,7 @@ def main():
         logger.info(res.summary())
 
         df_roi = df[df['Slice (I->S)'].between(725, 800)].copy()
+        #df_roi = df[df['Slice (I->S)'].between(800, 900)].copy()
         df_mean = (df_roi
                         .groupby(["participant_id", "method"], as_index=False)
                         .agg(mean_area=("MEAN(area)", "mean"),
@@ -1028,5 +1058,40 @@ def main():
             logger.info(f"\nMethod: {meth}  (n={len(d)})")
             logger.info(f"  Pearson r={r:.3f}, p={p:.4g}")
             logger.info(f"  Spearman rho={rho:.3f}, p={p_s:.4g}")
+
+        plt.figure(figsize=(6, 4), dpi=150)
+        ax = sns.scatterplot(
+            data=df_mean,
+            x="angle_deg",
+            y="mean_area",
+            hue="method",
+            markers="o",
+            palette=color_palette,
+            style="method",
+            s=70
+        )
+
+        # optional: add per-method linear fit lines
+        sns.regplot(
+            data=df_mean[df_mean["method"] == "discs"],
+            x="angle_deg", y="mean_area",
+            scatter=False, ax=ax, color='blue', line_kws={"lw": 2}
+        )
+        sns.regplot(
+            data=df_mean[df_mean["method"] == "spinal_level"],
+            x="angle_deg", y="mean_area",
+            scatter=False, ax=ax, color='red', line_kws={"lw": 2}
+        )
+
+        ax.set_xlabel("Neck angle (degrees)")
+        ax.set_ylabel("Mean CSA (MEAN(area))")
+        ax.set_title("Mean CSA vs neck angle (per method)")
+        ax.legend(title="Method", bbox_to_anchor=(1.02, 1), loc="upper left")
+        plt.tight_layout()
+
+        # save if you want
+        plt.savefig(os.path.join(path_out,"angle_vs_mean_area_by_method.png"), bbox_inches="tight", dpi=300)
+        logger.info(f'Created: {os.path.join(path_out,"angle_vs_mean_area_by_method.png")}\n')
+plt.show()    
 if __name__ == '__main__':
     main()
