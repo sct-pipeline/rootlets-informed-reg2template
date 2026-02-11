@@ -71,7 +71,30 @@ segment_if_does_not_exist(){
   else
     echo "Not found. Proceeding with automatic segmentation."
     # Segment spinal cord
-    sct_deepseg -i ${file}.nii.gz spinalcord -qc ${PATH_QC} -largest 1 -qc-subject ${SUBJECT} -o ${FILESEG}.nii.gz
+    sct_deepseg spinalcord -i ${file}.nii.gz  -qc ${PATH_QC} -largest 1 -qc-subject ${SUBJECT} -o ${FILESEG}.nii.gz
+  fi
+}
+
+label_if_does_not_exist(){
+  local file="$1"
+  local file_seg="$2"
+  local contrast="$3"
+  # Update global variable with segmentation file name
+  FILELABEL="${file}_label-discs_dlabel"
+  FILELABELMANUAL="${PATH_DERIVATIVES}/${SUBJECT}/anat/${FILELABEL}.nii.gz"
+  echo "Looking for manual label: $FILELABELMANUAL"
+  if [[ -e $FILELABELMANUAL ]]; then
+    echo "Found! Using manual labels."
+    rsync -avzh $FILELABELMANUAL ${FILELABEL}.nii.gz
+    # Generate labeled segmentation from manual disc labels
+    sct_image -i ${file}.nii.gz -set-sform-to-qform
+    sct_image -i ${file_seg}.nii.gz -set-sform-to-qform
+    sct_image -i ${FILELABEL}.nii.gz -set-sform-to-qform
+    sct_label_vertebrae -i ${file}.nii.gz -s ${file_seg}.nii.gz -discfile ${FILELABEL}.nii.gz -c ${contrast} -qc ${PATH_QC} -qc-subject ${SUBJECT}
+  else
+    echo "Not found. Proceeding with automatic labeling."
+    # Generate labeled segmentation automatically (no manual disc labels provided)
+    sct_label_vertebrae -i ${file}.nii.gz -s ${file_seg}.nii.gz -c ${contrast} -qc ${PATH_QC} -qc-subject ${SUBJECT}
   fi
 }
 
@@ -91,7 +114,7 @@ segment_rootlets_if_does_not_exist(){
   else
     echo "Not found. Proceeding with automatic labeling."
     # Segment rootlets
-    sct_deepseg -i ${file}.nii.gz rootlets -qc ${PATH_QC} -o ${FILELABEL}.nii.gz
+    sct_deepseg rootlets -i ${file}.nii.gz -qc ${PATH_QC} -o ${FILELABEL}.nii.gz
 
   fi
 }
@@ -121,8 +144,23 @@ mkdir -p ${PATH_RESULTS}/rootlets_PAM50
 sct_process_segmentation -i ${file_t2}_seg.nii.gz -rootlet ${file_t2_rootlets}.nii.gz -perslice 1 -normalize-PAM50 1 -o ${PATH_RESULTS}/rootlets_PAM50/${file_t2}_PAM50.csv -qc ${PATH_QC} -qc-subject ${SUBJECT}
 
 mkdir -p ${PATH_RESULTS}/rootlets_perlevel
-sct_process_segmentation -i ${file_t2}_seg.nii.gz -rootlet ${file_t2_rootlets}.nii.gz -perslice 1 -normalize-PAM50 1 -o ${PATH_RESULTS}/rootlets_perlevel/${file_t2}_PAM50.csv -qc ${PATH_QC} -qc-subject ${SUBJECT}
+sct_process_segmentation -i ${file_t2}_seg.nii.gz -rootlet ${file_t2_rootlets}.nii.gz -perlevel 1 -o ${PATH_RESULTS}/rootlets_perlevel/${file_t2}.csv -qc ${PATH_QC} -qc-subject ${SUBJECT} -v 2
 
+# Add QC report of spinal levels
+sct_qc -i ${file_t2}.nii.gz -s ${file_t2_rootlets}_com_add1_projected_seg_masked.nii.gz -p sct_label_vertebrae -qc ${PATH_QC} -qc-subject ${SUBJECT}
+
+# Compute CSA based on discs:
+label_if_does_not_exist ${file_t2} ${file_t2}_seg 't2'
+
+# Compute metrics from SC segmentation and normalize them to PAM50 ('-normalize-PAM50' flag)
+# Note: '-v 2' flag is used to get all available vertebral levels from PAM50 template. This assures that the output CSV
+# files will have the same number of rows, regardless of the subject's vertebral levels.
+mkdir -p ${PATH_RESULTS}/discs_PAM50
+sct_process_segmentation -i ${file_t2}_seg.nii.gz -vertfile ${file_t2}_seg_labeled.nii.gz -perslice 1 -normalize-PAM50 1 -v 2 -o ${PATH_RESULTS}/discs_PAM50/${file_t2}_PAM50.csv
+
+# do it per level as well
+mkdir -p ${PATH_RESULTS}/discs_perlevel
+sct_process_segmentation -i ${file_t2}_seg.nii.gz -vertfile ${file_t2}_seg_labeled.nii.gz -perlevel 1 -o ${PATH_RESULTS}/discs_perlevel/${file_t2}.csv
 
 # Display useful info for the log
 # ===============================
