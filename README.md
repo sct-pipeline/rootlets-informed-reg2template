@@ -41,7 +41,7 @@ Run batch **spinal reg levels** and disc-based spinal cord cross-sectional area 
   sct_run_batch -jobs -1 -path-data <PATH_DATA> -script /processing_script/process_spine_generic_single_spinal_csa.sh -path-out <PATH_OUT>
 ```
 
-### Generating figures
+## Generating figures
 Run the command once for Multi-subject, once for single subject.
 
 ```
