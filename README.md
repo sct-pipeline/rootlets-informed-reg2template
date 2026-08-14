@@ -2,16 +2,16 @@
 Spinal rootlets-informed registration to the template
 ## Installation
 ### Dependencies
-* Spinal cord Toolbox [v6.5](https://github.com/spinalcordtoolbox/spinalcordtoolbox/releases/tag/6.5)
+* Spinal cord Toolbox [v7.1](https://github.com/spinalcordtoolbox/spinalcordtoolbox/releases/tag/7.1)
 * Python 3.9
 ### Datasets
 * Spine Generic Multi-subject dataset version [r20250310](https://github.com/spine-generic/data-multi-subject/releases/tag/r20250310)
-* Spinal Cord Head Positions dataset version [v1.1.1](https://openneuro.org/datasets/ds004507/versions/1.1.1)
+* Spine Generic Single-subject dataset version [r20211115](https://github.com/spine-generic/data-single-subject/releases/tag/r20211115)
 ## Installation
 Clone Github repository
 ```
 git clone git@github.com:sct-pipeline/rootlets-informed-reg2template.git
-cd rootlets-informed-reg2template
+cd rootlets-informed-reg2template/processing_script
 ```
 
 Using SCT virtual environement
@@ -20,32 +20,36 @@ source ${SCT_DIR}/python/etc/profile.d/conda.sh
 conda activate venv_sct
 ```
 ## Inter-subject Validation
-Run batch regsitration to template using rootlets and disc-based template regsitration. This will also compute spianl cord cross-sectional area in template space
+Run batch **rootlets levels** and disc-based spinal cord cross-sectional area.
 ```
-  sct_run_batch -jobs -1 -path-data <PATH_DATA> -script /processing_script/process_spine_generic.sh -path-out <PATH_OUT>
+  cd $SCT_DIR
+  git checkout sb/5111-csa-ref-rootlets
+  cd $home/rootlets-informed-reg2template/processing_script
+  sct_run_batch -jobs -1 -path-data <PATH_DATA> -script process_spine_generic_rootlets_csa.sh -path-out <PATH_OUT>
 ```
-Create average image of rootlets-based registration:
+Run batch **spinal reg levels** and disc-based spinal cord cross-sectional area.
 ```
-python average_images.py -path-data <PATH_DATA_PROCESSED> -path-file reg_rootlets -path-out <PATH_RESULTS> -exclude processing_script/exclude_spine_generic.yml 
-```
-For disc-based registration
-```
-python average_images.py -path-data <PATH_DATA_PROCESSED> -path-file reg_discs -path-out <PATH_RESULTS> -exclude processing_script/exclude_spine_generic.yml 
-```
-
-### Morphometric analysis
-
-```
-python csa_analysis.py -i <PATH_RESULTS> -o <PATH_RESULTS>/results_spine_generic_csa_2024-11-21 -exclude processing_script/exclude_spine_generic.yml
-```
-## Single-subject Validation
-
-```
-  sct_run_batch -jobs -1 -path-data <PATH_DATA> -script /processing_script/process_pmj_data.sh -path-out <PATH_OUT>
+  cd $SCT_DIR
+  git checkout sb/5111-csa-ref-rootlets-fromPAM50
+  cd $home/rootlets-informed-reg2template/processing_script
+  sct_run_batch -jobs -1 -path-data <PATH_DATA> -script process_spine_generic_spinallevel_csa.sh -path-out <PATH_OUT>
 ```
 
-## Analyse Functional Data
+## Intra-subject Validation
+Run batch **spinal reg levels** and disc-based spinal cord cross-sectional area on spine generic single subject dataset. It also computes the neck angle between C1-C2 and C4-C5 intervertebral discs.
+```
+  sct_run_batch -jobs -1 -path-data <PATH_DATA> -script /processing_script/process_spine_generic_single_spinal_csa.sh -path-out <PATH_OUT>
+```
+
+### Generating figures
+Run the command once for Multi-subject, once for single subject.
 
 ```
-python analyse_func_ridge.py -i1 <rootlets_smooth_3.1_FE/thresh_zstat1_med.nii.gz> -i2 <discs_smooth_3.1_FE/thresh_zstat1_med.nii.gz> -o <PATH_OUT>
+python compare_methods.py compare_methods.py [-h] -path-SC-1 PATH_SC_1 -path-SC-2 PATH_SC_2 [-name-SC-1 NAME_SC_1]
+                          [-name-SC-2 NAME_SC_2]  [-vertlevel VERTLEVEL]
+                          [-ref-subject REF_SUBJECT] [-exclude EXCLUDE] [-angle ANGLE] [-path-out PATH_OUT]
+Example command:
+
+python compare_methods.py -path-SC-1 /home/ge.polymtl.ca/sabeda/processed_data/spine_generic_csa_rootlets_interseg_2026-06-18/results/rootlets_PAM50 -name-SC-1 rootlets -name-SC-2 spinal_level -path-SC-2 /home/ge.polymtl.ca/sabeda/GRAMES/process_results/spine_generic_csa_rootlets_2026-01-20-discs+spinallevel/results/spinal_level_PAM50  -exclude exclude_spine_generic_csa_analysis.yml -path-out /home/ge.polymtl.ca/sabeda/processed_data/spine_generic_csa_rootlets_interseg_2026-06-18/results/figures_spinal_level_rootlets_2026-06-19 -participant-file $SCT_DIR/data/PAM50_normalized_metrics/participants.tsv
 ```
+
