@@ -8,13 +8,13 @@ Spinal rootlets-informed registration to the template
 * Spine Generic Multi-subject dataset version [r20250310](https://github.com/spine-generic/data-multi-subject/releases/tag/r20250310)
 * Spine Generic Single-subject dataset version [r20211115](https://github.com/spine-generic/data-single-subject/releases/tag/r20211115)
 ## Installation
-Clone Github repository
+Clone GitHub repository
 ```
 git clone git@github.com:sct-pipeline/rootlets-informed-reg2template.git
 cd rootlets-informed-reg2template/processing_script
 ```
 
-Using SCT virtual environement
+Using SCT virtual environment
 ```
 source ${SCT_DIR}/python/etc/profile.d/conda.sh
 conda activate venv_sct
@@ -36,7 +36,7 @@ Run batch **spinal reg levels** and disc-based spinal cord cross-sectional area.
 ```
 
 ## Intra-subject Validation
-Run batch **spinal reg levels** and disc-based spinal cord cross-sectional area on spine generic single subject dataset. It also computes the neck angle between C1-C2 and C4-C5 intervertebral discs.
+Run batch **spinal reg levels** and disc-based spinal cord cross-sectional area on spine generic single subject dataset. It also computes the neck angle between C1-C2 and C5-C6 intervertebral discs.
 ```
   sct_run_batch -jobs -1 -path-data <PATH_DATA> -script /processing_script/process_spine_generic_single_spinal_csa.sh -path-out <PATH_OUT>
 ```
