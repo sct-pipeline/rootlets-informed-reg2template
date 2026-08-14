@@ -244,7 +244,7 @@ def create_lineplot(df, hue, path_out, show_cv=False, set_axis=True, filename=No
                          #palette=PALETTE[hue])
         else:
             sns.lineplot(ax=axs[index], x="Slice (I->S)", y=metric, data=df, errorbar='sd', hue=hue, palette=color_palette, linewidth=2)
-            axs[index].set_xlim(705, 969)
+            axs[index].set_xlim(722, 948)
             if index == 0:
                 axs[index].legend(loc='lower center', bbox_to_anchor=(0.38, 0.1), fontsize=TICKS_FONT_SIZE)
             else:
@@ -585,20 +585,50 @@ def compare_metrics_across_methods(df):
 
     for metric in METRICS:
         logger.info(f"\n{metric}")
-
+        #restrict:    
+        df_short = df[df['Slice (I->S)'] <= 948]
+        df_short = df[df['Slice (I->S)'] >= 712]
         # Get mean values for each slice
-        slices_deepseg = df[df['method'] == name_SC_1].groupby(['participant_id'])[metric].mean()
-        slices_ca = df[df['method'] == name_SC_2].groupby(['participant_id'])[metric].mean()
-
+        a = df_short[df_short['method'] == name_SC_1].groupby(['participant_id'])[metric].mean()
+        b = df_short[df_short['method'] == name_SC_2].groupby(['participant_id'])[metric].mean()
+        diff = a - b
+        print("N =", len(diff))
+        print("mean diff =", diff.mean())
+        print("std diff =", diff.std(ddof=1))
+        print(diff.describe())
         # Run normality test
-        stat, pval = stats.shapiro(slices_deepseg)
-        logger.info(f'Normality test {name_SC_1}: p-value{format_pvalue(pval)}')
-        stat, pval = stats.shapiro(slices_ca)
-        logger.info(f'Normality test {name_SC_2}: p-value{format_pvalue(pval)}')
+        stat, pval = stats.shapiro(a-b)
+        logger.info(f'Normality test: p-value{format_pvalue(pval)}')
         # Run Wilcoxon rank-sum test (groups are independent)
-        stat, pval = stats.wilcoxon(x=slices_deepseg, y=slices_ca)
-        logger.info(f'{metric}: Wilcoxon rank-sum test between {name_SC_1} and {name_SC_2}: p-value{format_pvalue(pval)}')
-
+        
+        if pval >= 0.05:
+            stat, p = stats.ttest_rel(a, b)
+            logger.info(f"{metric}: paired t-test: p={format_pvalue(p)}")
+        else:
+            stat, p = stats.wilcoxon(a, b)
+            logger.info(f"{metric}: Wilcoxon signed-rank (paired): p={format_pvalue(p)}")
+        
+        # Repeat tests per vertebral level
+        logger.info(f"  Per vertebral level:")
+        for vert_level in sorted(df_short['VertLevel'].unique()):
+            df_vert = df_short[df_short['VertLevel'] == vert_level]
+            a_vert = df_vert[df_vert['method'] == name_SC_1].groupby(['participant_id'])[metric].mean()
+            b_vert = df_vert[df_vert['method'] == name_SC_2].groupby(['participant_id'])[metric].mean()
+            
+            # Only test if both methods have data for this level
+            common_ids_vert = a_vert.index.intersection(b_vert.index)
+            if len(common_ids_vert) > 0:
+                a_vert = a_vert.loc[common_ids_vert]
+                b_vert = b_vert.loc[common_ids_vert]
+                
+                stat, pval_vert = stats.shapiro(a_vert - b_vert)
+                if pval_vert >= 0.05:
+                    stat, p_vert = stats.ttest_rel(a_vert, b_vert)
+                    logger.info(f"    VertLevel {vert_level}: paired t-test: p={format_pvalue(p_vert)}")
+                else:
+                    stat, p_vert = stats.wilcoxon(a_vert, b_vert)
+                    logger.info(f"    VertLevel {vert_level}: Wilcoxon signed-rank: p={format_pvalue(p_vert)}")
+        
         mean_deepseg = df[df['method'] == name_SC_1][metric].mean()
         std_deepseg = df[df['method'] == name_SC_1][metric].std()
         logger.info(f'\n{name_SC_1}: mean +/- std = {mean_deepseg} +/- {std_deepseg}')
@@ -607,42 +637,6 @@ def compare_metrics_across_methods(df):
         std_ca = df[df['method'] == name_SC_2][metric].std()
         logger.info(f'{name_SC_2}: mean +/- std = {mean_ca} +/- {std_ca}')
         
-
-        # Compiute mean at C2-C3 vertebral level for discs and c3-C4 spinal levels for disc
-        mean_discs_c3_c4 = df[(df['method'] == name_SC_2) & ((df['VertLevel'] == 3) | (df['VertLevel'] == 4))][metric].mean()
-        mean_rootlets_c3_c4 = df[(df['method'] == name_SC_1) & ((df['VertLevel'] == 3) | (df['VertLevel'] == 4))][metric].mean()
-        std_discs_c3_c4 = df[(df['method'] == name_SC_2) & ((df['VertLevel'] == 3) | (df['VertLevel'] == 4))][metric].std()
-        std_rootlets_c3_c4 = df[(df['method'] == name_SC_1) & ((df['VertLevel'] == 3) | (df['VertLevel'] == 4))][metric].std()
-        COV_discs_c3_c4 = (std_discs_c3_c4/mean_discs_c3_c4)*100
-        COV_rootlets_c3_c4 = (std_rootlets_c3_c4/mean_rootlets_c3_c4)*100
-        logger.info(f'\n{name_SC_2} C3-C4: mean = {mean_discs_c3_c4}, std = {std_discs_c3_c4}, COV = {COV_discs_c3_c4}%')
-        logger.info(f'{name_SC_1} C3-C4: mean = {mean_rootlets_c3_c4}, std = {std_rootlets_c3_c4}, COV = {COV_rootlets_c3_c4}%')
-
-        # Do the same for C2-C3 (discs) vs C3-C4 (rootlets)
-        vals_discs_c3_c4 = df[(df['method'] == name_SC_2) & ((df['VertLevel'] == 3) | (df['VertLevel'] == 4))].groupby('participant_id')[metric].mean()
-        vals_rootlets_c3_c4 = df[(df['method'] == name_SC_1) & ((df['VertLevel'] == 3) | (df['VertLevel'] == 4))].groupby('participant_id')[metric].mean()
-        common_ids = vals_discs_c3_c4.index.intersection(vals_rootlets_c3_c4.index)
-        stat, pval = stats.ttest_rel(vals_discs_c3_c4.loc[common_ids], vals_rootlets_c3_c4.loc[common_ids])
-        logger.info(f'Paired t-test between {name_SC_2} C3-C4 and {name_SC_1} C3-C4: p-value{format_pvalue(pval)}')
-
-        # Compiute mean at C4-C5 vertebral level (cervical enlargement) and c5-c6 spinal levels
-        mean_discs_c6_c7 = df[(df['method'] == name_SC_2) & ((df['VertLevel'] == 6) | (df['VertLevel'] == 7))][metric].mean()
-        mean_rootlets_c6_c7 = df[(df['method'] == name_SC_1) & ((df['VertLevel'] == 6) | (df['VertLevel'] == 7))][metric].mean()
-        std_discs_c6_c7 = df[(df['method'] == name_SC_2) & ((df['VertLevel'] == 6) | (df['VertLevel'] == 7))][metric].std()
-        std_rootlets_c6_c7 = df[(df['method'] == name_SC_1) & ((df['VertLevel'] == 6) | (df['VertLevel'] == 7))][metric].std()
-        COV_discs_c6_c7 = (std_discs_c6_c7/mean_discs_c6_c7)*100
-        COV_rootlets_c6_c7 = (std_rootlets_c6_c7/mean_rootlets_c6_c7)*100
-        logger.info(f'\n{name_SC_2} C6-C7: mean = {mean_discs_c6_c7}, std = {std_discs_c6_c7}, COV = {COV_discs_c6_c7}%')
-        logger.info(f'{name_SC_1} C6-C7: mean = {mean_rootlets_c6_c7}, std = {std_rootlets_c6_c7}, COV = {COV_rootlets_c6_c7}%')
-        # Compute average at those levels per subject (so one value per subject)
-        vals_discs_c6_c7 = df[(df['method'] == name_SC_2) & ((df['VertLevel'] == 6) | (df['VertLevel'] == 7))].groupby('participant_id')[metric].mean()
-        vals_rootlets_c6_c7 = df[(df['method'] == name_SC_1) & ((df['VertLevel'] == 6) | (df['VertLevel'] == 7))].groupby('participant_id')[metric].mean()
-        # Ensure both series are aligned by participant_id
-        common_ids = vals_discs_c6_c7.index.intersection(vals_rootlets_c6_c7.index)
-        stat, pval = stats.ttest_rel(vals_discs_c6_c7.loc[common_ids], vals_rootlets_c6_c7.loc[common_ids])
-        logger.info(f'Paired t-test between {name_SC_2} C6-C7 and {name_SC_1} C6-C7: p-value{format_pvalue(pval)}')
-
-
         # Compute average scaling factor:
         mean_scale = mean_ca/mean_deepseg
         logger.info(f'Scale: mean = {mean_scale}')
@@ -955,8 +949,8 @@ def main():
     logger.info(f'Dropped subjects: {str(list(set(list(subjects)) - set(list(subjects_after_dropping))))}\n')
 
     # Keep only VertLevel from C1 to Th1 (slices 705 to 969)
-    df = df[df['Slice (I->S)'] <= 969]
-    df = df[df['Slice (I->S)'] >= 705]
+    df = df[df['Slice (I->S)'] <= 948]
+    df = df[df['Slice (I->S)'] >= 722]
     # Multiply solidity by 100 to get percentage (sct_process_segmentation computes solidity in the interval 0-1)
     df['MEAN(solidity)'] = df['MEAN(solidity)'] * 100
 
@@ -965,7 +959,7 @@ def main():
     create_lineplot(df.loc[df['method'] == name_SC_1], hue=None, path_out=path_out, filename='lineplot_' + name_SC_1 + '.png')        # across all subjects
     create_lineplot(df.loc[df['method'] == name_SC_2], hue=None, path_out=path_out, filename='lineplot_' + name_SC_2 + '.png')        # across all subjects
     # Create line plot of STD:
-    fig, axes = plt.subplots(2, 3, figsize=(20, 10))
+    fig, axes = plt.subplots(2, 3, figsize=(18, 9))
     axs = axes.ravel()
     for index, metric in enumerate(METRICS):
         hue = 'method'
@@ -974,10 +968,20 @@ def main():
         sd_df = (df.groupby(["Slice (I->S)", hue])[metric]
             .std()
             .reset_index(name="sd"))
-        sns.lineplot(ax=axs[index], data=sd_df, x="Slice (I->S)", y="sd",
-            hue=hue, palette=color_palette, linewidth=2)
+        sns.lineplot(
+            ax=axs[index],
+            data=sd_df,
+            x="Slice (I->S)",
+            y="sd",
+            hue=hue,
+            palette=color_palette,
+            linewidth=2,
+            legend=False
+        )
         axs[index].invert_xaxis()
         axs[index].set_ylabel(f'STD of {METRIC_TO_TITLE[metric]}', fontsize=LABELS_FONT_SIZE)
+        axs[index].set_xlabel(f'Axial Slice #', fontsize=LABELS_FONT_SIZE)
+        axs[index].tick_params(axis='both', which='major', labelsize=TICKS_FONT_SIZE)
         axs[index].spines['right'].set_visible(False)
         axs[index].spines['left'].set_visible(False)
         axs[index].spines['top'].set_visible(False)
@@ -1053,6 +1057,10 @@ def main():
 
         for meth in sorted(df_mean["method"].unique()):
             d = df_mean[df_mean["method"] == meth].dropna(subset=["mean_area","angle_deg"])
+            # check for normality of mean_area and angle_deg using Shapiro-Wilk test
+            stat, p_value_mean_area = stats.shapiro(d["mean_area"])
+            stat, p_value_angle_deg = stats.shapiro(d["angle_deg"])
+            logger.info(f"\nMethod: {meth} - Shapiro-Wilk test for mean_area: p-value{format_pvalue(p_value_mean_area)}, Shapiro-Wilk test for angle_deg: p-value{format_pvalue(p_value_angle_deg)}")
             r, p = pearsonr(d["angle_deg"], d["mean_area"])
             rho, p_s = spearmanr(d["angle_deg"], d["mean_area"])
             logger.info(f"\nMethod: {meth}  (n={len(d)})")
@@ -1083,12 +1091,20 @@ def main():
             scatter=False, ax=ax, color='red', line_kws={"lw": 2}
         )
 
-        ax.set_xlabel("Neck angle (degrees)")
-        ax.set_ylabel("Mean CSA (MEAN(area))")
+        ax.set_xlabel("Neck angle [degrees]")
+        ax.set_ylabel("Mean CSA [mm²]")
         ax.set_title("Mean CSA vs neck angle (per method)")
         ax.legend(title="Method", bbox_to_anchor=(1.02, 1), loc="upper left")
         plt.tight_layout()
-
+        # Add text of spearman correlation permethod with pvalue formatted with format_pvalue function
+        for meth in sorted(df_mean["method"].unique()):
+            d = df_mean[df_mean["method"] == meth].dropna(subset=["mean_area","angle_deg"])
+            rho, p_s = spearmanr(d["angle_deg"], d["mean_area"])
+            text = f"rho = {rho:.3f}, p{format_pvalue(p_s)}"
+            if meth == "discs":
+                plt.text(0.05, 0.95, text, transform=ax.transAxes, fontsize=9, verticalalignment='top', color='blue')
+            else:
+                plt.text(0.05, 0.90, text, transform=ax.transAxes, fontsize=9, verticalalignment='top', color='red')
         # save if you want
         plt.savefig(os.path.join(path_out,"angle_vs_mean_area_by_method.png"), bbox_inches="tight", dpi=300)
         logger.info(f'Created: {os.path.join(path_out,"angle_vs_mean_area_by_method.png")}\n')

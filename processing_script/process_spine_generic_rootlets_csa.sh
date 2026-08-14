@@ -147,7 +147,8 @@ mkdir -p ${PATH_RESULTS}/rootlets_perlevel
 sct_process_segmentation -i ${file_t2}_seg.nii.gz -rootlet ${file_t2_rootlets}.nii.gz -perlevel 1 -o ${PATH_RESULTS}/rootlets_perlevel/${file_t2}.csv -qc ${PATH_QC} -qc-subject ${SUBJECT} -v 2
 
 # Add QC report of spinal levels
-sct_qc -i ${file_t2}.nii.gz -s ${file_t2_rootlets}_com_add1_projected_seg_masked.nii.gz -p sct_label_vertebrae -qc ${PATH_QC} -qc-subject ${SUBJECT}
+#sct_qc -i ${file_t2}.nii.gz -s ${file_t2_rootlets}_com_add1_projected_seg_masked.nii.gz -p sct_label_vertebrae -qc ${PATH_QC} -qc-subject ${SUBJECT}
+sct_qc -i ${file_t2}.nii.gz -s ${file_t2}_seg_spinal_level_masked.nii.gz -p sct_label_vertebrae -qc ${PATH_QC} -qc-subject ${SUBJECT}
 
 # Compute CSA based on discs:
 label_if_does_not_exist ${file_t2} ${file_t2}_seg 't2'
